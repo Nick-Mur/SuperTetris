@@ -19,7 +19,7 @@ import json
 import uuid
 import time
 import random
-import logging
+from loguru import logger
 import threading
 import queue
 import ctypes
@@ -28,17 +28,10 @@ import sys
 from enum import Enum, auto
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
+from pydantic import BaseModel, Field
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("tetris_towers_logic.log"),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger("TetrisTowersLogic")
+logger.add("tetris_towers_logic.log", rotation="1 day", retention="7 days")
 
 # Game constants
 class GameConstants:
@@ -985,196 +978,306 @@ class BlockFactory:
 
 
 class PhysicsEngine:
-    """Interface to the C++ physics engine via FFI."""
+    """Интерфейс для работы с C++ физическим движком."""
     
     def __init__(self):
-        """Initialize the physics engine."""
-        self.lib = None
-        self.engine_ptr = None
-        self.initialize()
+        self._lib = None
+        self._initialized = False
+        self._block_count = 0
+        self._error_count = 0
+        self._max_errors = 3
+        
+        try:
+            self.initialize()
+        except Exception as e:
+            logger.error(f"Failed to initialize physics engine: {e}")
+            raise
     
     def initialize(self) -> None:
-        """Initialize the physics engine library."""
+        """Инициализация физического движка."""
         try:
-            # Try to load the shared library
-            lib_path = os.path.join(os.path.dirname(__file__), "../cpp_physics/build/libphysics_engine.so")
-            self.lib = ctypes.CDLL(lib_path)
-            
-            # Define the Vec2 structure for FFI
+            # Определение структур для взаимодействия с C++
             class Vec2(ctypes.Structure):
                 _fields_ = [("x", ctypes.c_float), ("y", ctypes.c_float)]
             
-            # Define the BlockInfo structure for FFI
             class BlockInfo(ctypes.Structure):
                 _fields_ = [
                     ("id", ctypes.c_int),
                     ("position", Vec2),
                     ("angle", ctypes.c_float),
-                    ("linear_velocity", Vec2),
+                    ("velocity", Vec2),
                     ("angular_velocity", ctypes.c_float),
-                    ("width", ctypes.c_float),
-                    ("height", ctypes.c_float),
                     ("is_static", ctypes.c_bool),
                     ("is_active", ctypes.c_bool)
                 ]
             
-            # Define the CollisionInfo structure for FFI
             class CollisionInfo(ctypes.Structure):
                 _fields_ = [
                     ("block_a_id", ctypes.c_int),
                     ("block_b_id", ctypes.c_int),
                     ("point", Vec2),
                     ("normal", Vec2),
-                    ("impulse", ctypes.c_float)
+                    ("depth", ctypes.c_float)
                 ]
             
-            # Store the structure types
-            self.Vec2 = Vec2
-            self.BlockInfo = BlockInfo
-            self.CollisionInfo = CollisionInfo
+            # Загрузка библиотеки
+            try:
+                self._lib = ctypes.CDLL("./libphysics.so")
+            except OSError:
+                # Попытка загрузить библиотеку из альтернативного пути
+                try:
+                    self._lib = ctypes.CDLL("./build/libphysics.so")
+                except OSError as e:
+                    logger.error(f"Failed to load physics library: {e}")
+                    raise RuntimeError("Physics library not found")
             
-            # Set up function prototypes
-            self.lib.physics_engine_create.restype = ctypes.c_void_p
-            self.lib.physics_engine_destroy.argtypes = [ctypes.c_void_p]
-            self.lib.physics_engine_step.argtypes = [ctypes.c_void_p, ctypes.c_float]
-            self.lib.physics_engine_set_gravity.argtypes = [ctypes.c_void_p, Vec2]
-            self.lib.physics_engine_get_gravity.argtypes = [ctypes.c_void_p]
-            self.lib.physics_engine_get_gravity.restype = Vec2
+            # Настройка типов возвращаемых значений
+            self._lib.init_physics.restype = ctypes.c_bool
+            self._lib.create_block.restype = ctypes.c_int
+            self._lib.remove_block.restype = ctypes.c_bool
+            self._lib.get_block_info.restype = ctypes.POINTER(BlockInfo)
+            self._lib.check_collision.restype = ctypes.c_bool
+            self._lib.get_collisions.restype = ctypes.POINTER(CollisionInfo)
             
-            # Create the physics engine instance
-            self.engine_ptr = self.lib.physics_engine_create()
+            # Инициализация физического движка
+            if not self._lib.init_physics():
+                raise RuntimeError("Failed to initialize physics engine")
             
-            # Set default gravity
-            gravity = Vec2(0.0, GameConstants.GRAVITY)
-            self.lib.physics_engine_set_gravity(self.engine_ptr, gravity)
-            
+            self._initialized = True
             logger.info("Physics engine initialized successfully")
+            
         except Exception as e:
-            logger.error(f"Failed to initialize physics engine: {e}")
-            # Fall back to a simple physics simulation if the C++ library can't be loaded
-            self.lib = None
-            self.engine_ptr = None
+            logger.error(f"Error during physics engine initialization: {e}")
+            self._initialized = False
+            raise
     
     def __del__(self):
-        """Clean up resources when the object is destroyed."""
-        if self.lib and self.engine_ptr:
-            self.lib.physics_engine_destroy(self.engine_ptr)
+        """Очистка ресурсов при уничтожении объекта."""
+        try:
+            if self._lib and self._initialized:
+                self._lib.cleanup_physics()
+                self._initialized = False
+        except Exception as e:
+            logger.error(f"Error during physics engine cleanup: {e}")
     
     def step(self, dt: float) -> None:
-        """Advance the physics simulation by the specified time step."""
-        if self.lib and self.engine_ptr:
-            self.lib.physics_engine_step(self.engine_ptr, ctypes.c_float(dt))
-        else:
-            # Simple fallback physics if the C++ library isn't available
-            logger.warning("Using fallback physics simulation")
+        """Выполнение шага симуляции."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        try:
+            self._lib.step_physics(ctypes.c_float(dt))
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error during physics step: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
     
     def create_block(self, block: Block) -> int:
-        """Create a block in the physics engine."""
-        if self.lib and self.engine_ptr:
-            position = self.Vec2(block.position.x, block.position.y)
-            block_id = self.lib.physics_engine_create_block(
-                self.engine_ptr,
-                position,
-                ctypes.c_float(block.shape.width),
-                ctypes.c_float(block.shape.height),
+        """Создание блока в физическом движке."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if not block:
+            raise ValueError("Block cannot be null")
+        
+        try:
+            block_id = self._lib.create_block(
+                ctypes.c_float(block.position.x),
+                ctypes.c_float(block.position.y),
                 ctypes.c_float(block.angle),
-                ctypes.c_float(block.density),
-                ctypes.c_float(block.friction),
-                ctypes.c_float(block.restitution),
-                block.is_static
+                ctypes.c_float(block.velocity.x),
+                ctypes.c_float(block.velocity.y),
+                ctypes.c_float(block.angular_velocity),
+                ctypes.c_bool(block.is_static),
+                ctypes.c_bool(block.is_active)
             )
+            
+            if block_id < 0:
+                raise RuntimeError("Failed to create block in physics engine")
+            
+            self._block_count += 1
             return block_id
-        else:
-            # Return the block's ID if the C++ library isn't available
-            return block.id
+            
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error creating block: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return -1
     
     def remove_block(self, block_id: int) -> bool:
-        """Remove a block from the physics engine."""
-        if self.lib and self.engine_ptr:
-            return bool(self.lib.physics_engine_remove_block(self.engine_ptr, block_id))
-        return True
+        """Удаление блока из физического движка."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if block_id < 0:
+            return False
+        
+        try:
+            result = self._lib.remove_block(ctypes.c_int(block_id))
+            if result:
+                self._block_count -= 1
+            return result
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error removing block: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return False
     
     def get_block_info(self, block_id: int) -> Optional[Dict[str, Any]]:
-        """Get information about a block from the physics engine."""
-        if self.lib and self.engine_ptr:
-            info = self.BlockInfo()
-            if self.lib.physics_engine_get_block_info(self.engine_ptr, block_id, ctypes.byref(info)):
-                return {
-                    "id": info.id,
-                    "position": {"x": info.position.x, "y": info.position.y},
-                    "angle": info.angle,
-                    "linear_velocity": {"x": info.linear_velocity.x, "y": info.linear_velocity.y},
-                    "angular_velocity": info.angular_velocity,
-                    "width": info.width,
-                    "height": info.height,
-                    "is_static": info.is_static,
-                    "is_active": info.is_active
-                }
-        return None
+        """Получение информации о блоке."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if block_id < 0:
+            return None
+        
+        try:
+            info_ptr = self._lib.get_block_info(ctypes.c_int(block_id))
+            if not info_ptr:
+                return None
+            
+            info = info_ptr.contents
+            return {
+                "id": info.id,
+                "position": {"x": info.position.x, "y": info.position.y},
+                "angle": info.angle,
+                "velocity": {"x": info.velocity.x, "y": info.velocity.y},
+                "angular_velocity": info.angular_velocity,
+                "is_static": info.is_static,
+                "is_active": info.is_active
+            }
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error getting block info: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return None
     
     def update_block(self, block: Block) -> None:
-        """Update a block's properties in the physics engine."""
-        if self.lib and self.engine_ptr:
-            position = self.Vec2(block.position.x, block.position.y)
-            velocity = self.Vec2(block.velocity.x, block.velocity.y)
-            
-            self.lib.physics_engine_set_block_position(self.engine_ptr, block.id, position)
-            self.lib.physics_engine_set_block_angle(self.engine_ptr, block.id, ctypes.c_float(block.angle))
-            self.lib.physics_engine_set_block_linear_velocity(self.engine_ptr, block.id, velocity)
-            self.lib.physics_engine_set_block_angular_velocity(self.engine_ptr, block.id, ctypes.c_float(block.angular_velocity))
-            self.lib.physics_engine_set_block_active(self.engine_ptr, block.id, block.is_active)
-            self.lib.physics_engine_set_block_static(self.engine_ptr, block.id, block.is_static)
+        """Обновление состояния блока."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if not block:
+            raise ValueError("Block cannot be null")
+        
+        try:
+            self._lib.update_block(
+                ctypes.c_int(block.id),
+                ctypes.c_float(block.position.x),
+                ctypes.c_float(block.position.y),
+                ctypes.c_float(block.angle),
+                ctypes.c_float(block.velocity.x),
+                ctypes.c_float(block.velocity.y),
+                ctypes.c_float(block.angular_velocity),
+                ctypes.c_bool(block.is_static),
+                ctypes.c_bool(block.is_active)
+            )
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error updating block: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
     
     def apply_force(self, block_id: int, force_x: float, force_y: float, point_x: float, point_y: float) -> bool:
-        """Apply a force to a block at the specified point."""
-        if self.lib and self.engine_ptr:
-            force = self.Vec2(force_x, force_y)
-            point = self.Vec2(point_x, point_y)
-            return bool(self.lib.physics_engine_apply_force(self.engine_ptr, block_id, force, point))
-        return False
+        """Применение силы к блоку."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if block_id < 0:
+            return False
+        
+        try:
+            return self._lib.apply_force(
+                ctypes.c_int(block_id),
+                ctypes.c_float(force_x),
+                ctypes.c_float(force_y),
+                ctypes.c_float(point_x),
+                ctypes.c_float(point_y)
+            )
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error applying force: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return False
     
     def apply_torque(self, block_id: int, torque: float) -> bool:
-        """Apply torque to a block."""
-        if self.lib and self.engine_ptr:
-            return bool(self.lib.physics_engine_apply_torque(self.engine_ptr, block_id, ctypes.c_float(torque)))
-        return False
+        """Применение крутящего момента к блоку."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if block_id < 0:
+            return False
+        
+        try:
+            return self._lib.apply_torque(
+                ctypes.c_int(block_id),
+                ctypes.c_float(torque)
+            )
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error applying torque: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return False
     
     def check_collision(self, block_a_id: int, block_b_id: int) -> bool:
-        """Check if two blocks are colliding."""
-        if self.lib and self.engine_ptr:
-            return bool(self.lib.physics_engine_check_collision(self.engine_ptr, block_a_id, block_b_id))
-        return False
+        """Проверка столкновения между блоками."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        if block_a_id < 0 or block_b_id < 0:
+            return False
+        
+        try:
+            return self._lib.check_collision(
+                ctypes.c_int(block_a_id),
+                ctypes.c_int(block_b_id)
+            )
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error checking collision: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return False
     
     def get_collisions(self) -> List[Dict[str, Any]]:
-        """Get all current collisions."""
-        if self.lib and self.engine_ptr:
-            count = self.lib.physics_engine_get_collision_count(self.engine_ptr)
-            if count == 0:
+        """Получение списка всех столкновений."""
+        if not self._initialized:
+            raise RuntimeError("Physics engine not initialized")
+        
+        try:
+            collisions_ptr = self._lib.get_collisions()
+            if not collisions_ptr:
                 return []
             
-            # Create a buffer to hold the collision information
-            collisions_array = (self.CollisionInfo * count)()
-            actual_count = self.lib.physics_engine_get_collisions(
-                self.engine_ptr,
-                ctypes.cast(collisions_array, ctypes.POINTER(self.CollisionInfo)),
-                count
-            )
-            
-            # Convert the collision information to dictionaries
             collisions = []
-            for i in range(actual_count):
-                collision = collisions_array[i]
+            i = 0
+            while True:
+                collision = collisions_ptr[i]
+                if collision.block_a_id < 0:  # Маркер конца списка
+                    break
+                
                 collisions.append({
                     "block_a_id": collision.block_a_id,
                     "block_b_id": collision.block_b_id,
                     "point": {"x": collision.point.x, "y": collision.point.y},
                     "normal": {"x": collision.normal.x, "y": collision.normal.y},
-                    "impulse": collision.impulse
+                    "depth": collision.depth
                 })
+                i += 1
             
             return collisions
-        
-        return []
+        except Exception as e:
+            self._error_count += 1
+            logger.error(f"Error getting collisions: {e}")
+            if self._error_count >= self._max_errors:
+                raise RuntimeError("Too many physics engine errors")
+            return []
 
 
 class GameManager:

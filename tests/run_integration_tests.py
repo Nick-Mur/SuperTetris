@@ -10,14 +10,24 @@ import threading
 import queue
 import random
 
-# Функция для проверки интеграции между C++ и Rust
-def test_cpp_rust_integration():
-    print("Testing C++ Physics Engine and Rust Server integration...")
+# Функция для проверки интеграции между C++ и Python
+def test_cpp_python_integration():
+    print("Testing C++ Physics Engine and Python Game Logic integration...")
     
     try:
-        # Проверка API сервера для физических операций
+        # Проверка доступности физического движка
+        try:
+            response = requests.get("http://localhost:9000/physics/status")
+            if response.status_code != 200:
+                print("Error: Physics engine is not available")
+                return False
+        except requests.RequestException:
+            print("Error: Cannot connect to physics engine")
+            return False
+
+        # Проверка API для физических операций
         response = requests.post(
-            "http://localhost:8080/api/v1/physics/simulate",
+            "http://localhost:9000/physics/simulate",
             json={"dt": 0.016, "entities": [{"id": 1, "type": "block", "x": 5, "y": 0, "rotation": 0}]}
         )
         
@@ -30,58 +40,13 @@ def test_cpp_rust_integration():
             print("Error: Invalid response format")
             return False
         
-        print("C++ Physics Engine and Rust Server integration test passed.")
-        return True
-    
-    except Exception as e:
-        print(f"Error during test: {e}")
-        return False
-
-# Функция для проверки интеграции между Rust и Python
-def test_rust_python_integration():
-    print("Testing Rust Server and Python Game Logic integration...")
-    
-    try:
-        # Создание новой игры
-        response = requests.post(
-            "http://localhost:8080/api/v1/games",
-            json={"mode": "RACE", "players": 1, "difficulty": "EASY"}
-        )
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
+        # Проверка корректности физических расчетов
+        entity = result["entities"][0]
+        if "velocity" not in entity or "position" not in entity:
+            print("Error: Missing physics data in response")
             return False
         
-        game_data = response.json()
-        if "gameId" not in game_data:
-            print("Error: Invalid response format (missing gameId)")
-            return False
-        
-        game_id = game_data["gameId"]
-        
-        # Выполнение действия в игре
-        response = requests.post(
-            f"http://localhost:8080/api/v1/games/{game_id}/action",
-            json={"playerId": "player1", "actionType": "MOVE_LEFT"}
-        )
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
-            return False
-        
-        # Получение состояния игры
-        response = requests.get(f"http://localhost:8080/api/v1/games/{game_id}")
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
-            return False
-        
-        game_state = response.json()
-        if "state" not in game_state:
-            print("Error: Invalid response format (missing state)")
-            return False
-        
-        print("Rust Server and Python Game Logic integration test passed.")
+        print("C++ Physics Engine and Python Game Logic integration test passed.")
         return True
     
     except Exception as e:
@@ -173,114 +138,68 @@ def test_python_typescript_integration():
         print(f"Error during test: {e}")
         return False
 
-# Функция для проверки интеграции между Go и Rust
-def test_go_rust_integration():
-    print("Testing Go Tools and Rust Server integration...")
+# Функция для проверки интеграции между Go и Python
+def test_go_python_integration():
+    print("Testing Go Tools and Python Game Logic integration...")
     
     try:
-        # Проверка API для инструментов разработки
-        response = requests.get("http://localhost:8080/api/v1/dev/status")
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
+        # Проверка доступности Go сервера
+        try:
+            response = requests.get("http://localhost:8080/api/v1/dev/status")
+            if response.status_code != 200:
+                print("Error: Go server is not available")
+                return False
+        except requests.RequestException:
+            print("Error: Cannot connect to Go server")
             return False
-        
+
         status = response.json()
         if "status" not in status or status["status"] != "ok":
             print("Error: Invalid status response")
             return False
         
         # Создание тестового уровня
-        response = requests.post(
-            "http://localhost:8080/api/v1/dev/levels",
-            json={
-                "name": "Test Level",
-                "difficulty": "MEDIUM",
-                "blocks": [
-                    {"type": "L", "initialX": 5, "initialY": 0},
-                    {"type": "I", "initialX": 2, "initialY": 3}
-                ]
-            }
-        )
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
-            return False
-        
-        level_data = response.json()
-        if "levelId" not in level_data:
-            print("Error: Invalid response format (missing levelId)")
-            return False
-        
-        level_id = level_data["levelId"]
-        
-        # Получение созданного уровня
-        response = requests.get(f"http://localhost:8080/api/v1/dev/levels/{level_id}")
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
-            return False
-        
-        level = response.json()
-        if "name" not in level or level["name"] != "Test Level":
-            print("Error: Invalid level data")
-            return False
-        
-        print("Go Tools and Rust Server integration test passed.")
-        return True
-    
-    except Exception as e:
-        print(f"Error during test: {e}")
-        return False
-
-# Функция для проверки интеграции между Scala и Rust
-def test_scala_rust_integration():
-    print("Testing Scala Analytics and Rust Server integration...")
-    
-    try:
-        # Создание нескольких игр для генерации данных аналитики
-        for i in range(3):
+        try:
             response = requests.post(
-                "http://localhost:8080/api/v1/games",
-                json={"mode": "RACE", "players": 1, "difficulty": "EASY"}
+                "http://localhost:8080/api/v1/dev/levels",
+                json={
+                    "name": "Test Level",
+                    "difficulty": "MEDIUM",
+                    "blocks": [
+                        {"type": "L", "initialX": 5, "initialY": 0},
+                        {"type": "I", "initialX": 2, "initialY": 3}
+                    ]
+                }
             )
             
             if response.status_code != 200:
-                print(f"Error: Server returned status code {response.status_code}")
+                print(f"Error: Failed to create test level: {response.status_code}")
                 return False
+                
+            level_data = response.json()
+            if "levelId" not in level_data:
+                print("Error: Invalid level creation response")
+                return False
+                
+            level_id = level_data["levelId"]
             
-            game_id = response.json()["gameId"]
+            # Проверка созданного уровня
+            response = requests.get(f"http://localhost:8080/api/v1/dev/levels/{level_id}")
+            if response.status_code != 200:
+                print("Error: Failed to retrieve created level")
+                return False
+                
+            level = response.json()
+            if "name" not in level or level["name"] != "Test Level":
+                print("Error: Invalid level data")
+                return False
+                
+            print("Go Tools and Python Game Logic integration test passed.")
+            return True
             
-            # Выполнение нескольких действий
-            for action in ["MOVE_LEFT", "MOVE_RIGHT", "ROTATE_CW", "HARD_DROP"]:
-                response = requests.post(
-                    f"http://localhost:8080/api/v1/games/{game_id}/action",
-                    json={"playerId": "player1", "actionType": action}
-                )
-            
-            # Завершение игры
-            response = requests.post(
-                f"http://localhost:8080/api/v1/games/{game_id}/end",
-                json={"playerId": "player1", "score": 1000 * (i + 1)}
-            )
-        
-        # Ожидание обработки данных аналитикой
-        time.sleep(5)
-        
-        # Получение аналитических данных
-        response = requests.get("http://localhost:8080/api/v1/analytics/summary")
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
+        except requests.RequestException as e:
+            print(f"Error during level creation/verification: {e}")
             return False
-        
-        analytics = response.json()
-        if "gameCount" not in analytics or analytics["gameCount"] < 3:
-            print("Error: Analytics data not properly collected")
-            return False
-        
-        print("Scala Analytics and Rust Server integration test passed.")
-        return True
     
     except Exception as e:
         print(f"Error during test: {e}")
@@ -297,6 +216,7 @@ def test_full_system():
     
     def on_error(ws, error):
         print(f"WebSocket error: {error}")
+        message_queue.put({"type": "ERROR", "error": str(error)})
     
     def on_close(ws, close_status_code, close_msg):
         print("WebSocket connection closed")
@@ -310,6 +230,23 @@ def test_full_system():
         }))
     
     try:
+        # Проверка доступности всех сервисов
+        services = [
+            ("http://localhost:8080/api/v1/status", "Main API"),
+            ("http://localhost:9000/physics/status", "Physics Engine"),
+            ("http://localhost:8080/api/v1/dev/status", "Go Tools")
+        ]
+        
+        for url, name in services:
+            try:
+                response = requests.get(url)
+                if response.status_code != 200:
+                    print(f"Error: {name} is not available")
+                    return False
+            except requests.RequestException:
+                print(f"Error: Cannot connect to {name}")
+                return False
+
         # 1. Проверка доступности сервера
         response = requests.get("http://localhost:8080/api/v1/status")
         
@@ -427,11 +364,9 @@ def main():
     
     # Запуск тестов интеграции
     tests = [
-        test_cpp_rust_integration,
-        test_rust_python_integration,
+        test_cpp_python_integration,
         test_python_typescript_integration,
-        test_go_rust_integration,
-        test_scala_rust_integration,
+        test_go_python_integration,
         test_full_system
     ]
     

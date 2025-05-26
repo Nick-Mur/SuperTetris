@@ -4,12 +4,13 @@ from fastapi import FastAPI, WebSocket
 from loguru import logger
 import uuid
 from typing import Dict, Set
-
+import uvicorn.logging
 from .config import Settings
 from .game.manager import GameManager
 from .session.manager import SessionManager
 from .network.manager import NetworkManager
 from .physics.manager import PhysicsManager
+from .exceptions import GameError, SessionNotFoundError, NetworkError
 
 app = FastAPI(title="Tetris Game Server")
 settings = Settings()

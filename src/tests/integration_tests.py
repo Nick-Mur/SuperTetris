@@ -24,32 +24,65 @@ class TestTetrisIntegration(unittest.TestCase):
         """Запуск всех необходимых сервисов перед тестированием"""
         print("Starting test services...")
         
+        # Проверка наличия необходимых директорий
+        required_dirs = [
+            "../cpp_physics/build",
+            "../python_logic"
+        ]
+        
+        for directory in required_dirs:
+            if not os.path.exists(directory):
+                raise RuntimeError(f"Required directory not found: {directory}")
+        
         # Запуск физического движка (C++)
-        cls.physics_process = subprocess.Popen(
-            ["./physics_engine"],
-            cwd="../cpp_physics/build",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        try:
+            cls.physics_process = subprocess.Popen(
+                ["./physics_engine"],
+                cwd="../cpp_physics/build",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to start physics engine: {e}")
         
-        # Запуск сервера (Rust)
-        cls.server_process = subprocess.Popen(
-            ["cargo", "run"],
-            cwd="../rust_server",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        
-        # Запуск системы аналитики (Scala)
-        cls.analytics_process = subprocess.Popen(
-            ["sbt", "run"],
-            cwd="../scala_analytics",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        # Запуск Python сервера
+        try:
+            cls.server_process = subprocess.Popen(
+                ["python", "server.py"],
+                cwd="../python_logic",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+        except Exception as e:
+            # Остановка физического движка в случае ошибки
+            cls.physics_process.terminate()
+            raise RuntimeError(f"Failed to start Python server: {e}")
         
         # Ожидание запуска всех сервисов
-        time.sleep(10)
+        max_retries = 30
+        retry_interval = 1
+        
+        for i in range(max_retries):
+            try:
+                # Проверка физического движка
+                physics_response = requests.get("http://localhost:9000/physics/status")
+                if physics_response.status_code != 200:
+                    raise requests.RequestException("Physics engine not ready")
+                
+                # Проверка Python сервера
+                server_response = requests.get("http://localhost:8000/health")
+                if server_response.status_code != 200:
+                    raise requests.RequestException("Python server not ready")
+                
+                # Если оба сервиса доступны, выходим из цикла
+                break
+                
+            except requests.RequestException:
+                if i == max_retries - 1:
+                    # Остановка процессов в случае таймаута
+                    cls.tearDownClass()
+                    raise RuntimeError("Services failed to start within timeout")
+                time.sleep(retry_interval)
         
         # Базовый URL для API
         cls.base_url = "http://localhost:8000"
@@ -60,12 +93,13 @@ class TestTetrisIntegration(unittest.TestCase):
         print("Stopping test services...")
         
         # Остановка процессов
-        for process in [cls.physics_process, cls.server_process, cls.analytics_process]:
+        for process in [cls.physics_process, cls.server_process]:
             try:
                 process.terminate()
                 process.wait(timeout=5)
-            except:
+            except subprocess.TimeoutExpired:
                 process.kill()
+            except Exception as e:
     
     def test_01_server_health(self):
         """Проверка доступности сервера"""
@@ -287,32 +321,7 @@ class TestTetrisIntegration(unittest.TestCase):
         except requests.RequestException as e:
             self.fail(f"Spell casting failed: {e}")
     
-    def test_08_ai_prediction(self):
-        """Проверка предсказаний ИИ"""
-        # Получение текущего состояния
-        response = requests.get(f"{self.base_url}/game/{self.session_id}/state")
-        data = response.json()
-        
-        # Отправка запроса на предсказание ИИ
-        ai_payload = {
-            "game_state": data,
-            "player_id": self.player_id
-        }
-        
-        try:
-            response = requests.post("http://localhost:8001/ai/predict_move", json=ai_payload)
-            self.assertEqual(response.status_code, 200)
-            
-            # Проверка структуры ответа
-            ai_response = response.json()
-            self.assertIn("action_type", ai_response)
-            self.assertIn("x", ai_response)
-            self.assertIn("y", ai_response)
-            self.assertIn("rotation", ai_response)
-        except requests.RequestException as e:
-            self.fail(f"AI prediction failed: {e}")
-    
-    def test_09_physics_simulation(self):
+    def test_08_physics_simulation(self):
         """Проверка физической симуляции"""
         # Создание тестового блока
         block_payload = {
@@ -351,7 +360,7 @@ class TestTetrisIntegration(unittest.TestCase):
         except requests.RequestException as e:
             self.fail(f"Physics simulation failed: {e}")
     
-    def test_10_analytics_data(self):
+    def test_09_analytics_data(self):
         """Проверка сбора аналитических данных"""
         try:
             # Отправка тестового события
@@ -383,7 +392,7 @@ class TestTetrisIntegration(unittest.TestCase):
         except requests.RequestException as e:
             self.fail(f"Analytics data collection failed: {e}")
     
-    def test_11_end_game(self):
+    def test_10_end_game(self):
         """Проверка завершения игры"""
         try:
             response = requests.post(f"{self.base_url}/game/{self.session_id}/end")

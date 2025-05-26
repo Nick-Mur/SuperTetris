@@ -139,21 +139,6 @@ test_python_logic() {
     fi
 }
 
-# Тестирование Scala аналитики
-test_scala_analytics() {
-    echo -e "${BLUE}Testing Scala Analytics...${NC}"
-    
-    cd "${PROJECT_ROOT}/src/scala_analytics"
-    sbt test > "${LOG_DIR}/scala_analytics_test.log" 2>&1
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Scala Analytics tests passed.${NC}"
-    else
-        echo -e "${RED}Scala Analytics tests failed.${NC}"
-        exit 1
-    fi
-}
-
 # Интеграционное тестирование
 test_integration() {
     echo -e "${BLUE}Running integration tests...${NC}"
@@ -184,7 +169,6 @@ main() {
     test_cpp_physics
     test_go_tools
     test_python_logic
-    test_scala_analytics
     test_integration
     
     echo -e "${GREEN}All tests passed successfully.${NC}"

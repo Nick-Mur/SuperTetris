@@ -40,7 +40,7 @@ check_dependencies() {
     echo -e "${BLUE}Checking dependencies...${NC}"
     
     # Список необходимых инструментов
-    DEPS=("cmake" "cargo" "python3" "npm" "julia" "go" "sbt")
+    DEPS=("cmake" "python3" "npm" "go")
     MISSING=()
     
     for dep in "${DEPS[@]}"; do
@@ -57,19 +57,14 @@ check_dependencies() {
             linux)
                 echo -e "${YELLOW}You can install them using your package manager:${NC}"
                 echo "sudo apt-get install build-essential cmake python3-dev python3-pip nodejs npm golang"
-                echo "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-                echo "curl -fL https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz | gzip -d > cs && chmod +x cs && ./cs setup"
                 ;;
             macos)
                 echo -e "${YELLOW}You can install them using Homebrew:${NC}"
-                echo "brew install cmake python node go sbt"
-                echo "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+                echo "brew install cmake python node go"
                 ;;
             windows)
                 echo -e "${YELLOW}You can install them using Chocolatey:${NC}"
                 echo "choco install cmake python nodejs golang"
-                echo "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-                echo "curl -fL https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-win.exe -o cs.exe && ./cs setup"
                 ;;
         esac
         
