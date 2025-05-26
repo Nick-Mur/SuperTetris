@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/ubuntu/tetris_project/src/cpp_physics/build",
+  "command": "/usr/bin/c++ -Dphysics_engine_EXPORTS -I/home/ubuntu/tetris_project/src/cpp_physics -fPIC -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/physics_engine.dir/PhysicsEngine.cpp.o -c /home/ubuntu/tetris_project/src/cpp_physics/PhysicsEngine.cpp",
+  "file": "/home/ubuntu/tetris_project/src/cpp_physics/PhysicsEngine.cpp"
+},
+{
+  "directory": "/home/ubuntu/tetris_project/src/cpp_physics/build",
+  "command": "/usr/bin/c++  -I/home/ubuntu/tetris_project/src/cpp_physics -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/physics_engine_test.dir/main.cpp.o -c /home/ubuntu/tetris_project/src/cpp_physics/main.cpp",
+  "file": "/home/ubuntu/tetris_project/src/cpp_physics/main.cpp"
+}
+]

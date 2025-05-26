@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # C++ Physics Engine
+  cpp-physics:
+    build:
+      context: ./src/cpp_physics
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/cpp_physics:/app
+      - ./build/cpp_physics:/app/build
+    networks:
+      - tetris-network
+
+  # Python Game Server
+  python-server:
+    build:
+      context: ./src/python_server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ./config:/app/config:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=debug
+    depends_on:
+      - cpp-physics
+    networks:
+      - tetris-network
+
+  # Python Game Logic
+  python-logic:
+    build:
+      context: ./src/python_logic
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/python_logic:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - python-server
+    networks:
+      - tetris-network
+
+  # TypeScript Client
+  typescript-client:
+    build:
+      context: ./src/typescript_client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/typescript_client:/app
+    depends_on:
+      - python-server
+    networks:
+      - tetris-network
+
+  # Julia AI
+  julia-ai:
+    build:
+      context: ./src/julia_ai
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/julia_ai:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - python-server
+    networks:
+      - tetris-network
+
+  # Go Development Tools
+  go-tools:
+    build:
+      context: ./src/go_tools
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/go_tools:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - python-server
+    networks:
+      - tetris-network
+
+  # Scala Analytics
+  scala-analytics:
+    build:
+      context: ./src/scala_analytics
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/scala_analytics:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - python-server
+    networks:
+      - tetris-network
+
+networks:
+  tetris-network:
+    driver: bridge

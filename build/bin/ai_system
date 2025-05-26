@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "AI System Mock - Running"
+while true; do
+  sleep 1
+done
