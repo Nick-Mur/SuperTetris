@@ -34,17 +34,72 @@ detect_platform() {
     echo -e "${BLUE}Detected platform: ${PLATFORM}${NC}"
 }
 
+# Тестирование Python серверной части
+test_python_server() {
+    echo -e "${BLUE}Testing Python Game Server...${NC}"
+    
+    cd "${PROJECT_ROOT}/src/python_server"
+    python -m pytest tests/ > "${LOG_DIR}/python_server_test.log" 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Python Game Server tests passed.${NC}"
+    else
+        echo -e "${RED}Python Game Server tests failed.${NC}"
+        exit 1
+    fi
+}
+
+# Тестирование Python аналитики
+test_python_analytics() {
+    echo -e "${BLUE}Testing Python Analytics...${NC}"
+    
+    cd "${PROJECT_ROOT}/src/python_analytics"
+    python -m pytest tests/ > "${LOG_DIR}/python_analytics_test.log" 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Python Analytics tests passed.${NC}"
+    else
+        echo -e "${RED}Python Analytics tests failed.${NC}"
+        exit 1
+    fi
+}
+
+# Тестирование Python ИИ
+test_python_ai() {
+    echo -e "${BLUE}Testing Python AI...${NC}"
+    
+    cd "${PROJECT_ROOT}/src/python_ai"
+    python -m pytest tests/ > "${LOG_DIR}/python_ai_test.log" 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Python AI tests passed.${NC}"
+    else
+        echo -e "${RED}Python AI tests failed.${NC}"
+        exit 1
+    fi
+}
+
+# Тестирование TypeScript клиента
+test_typescript_client() {
+    echo -e "${BLUE}Testing TypeScript Client...${NC}"
+    
+    cd "${PROJECT_ROOT}/src/typescript_client"
+    npm test > "${LOG_DIR}/typescript_client_test.log" 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}TypeScript Client tests passed.${NC}"
+    else
+        echo -e "${RED}TypeScript Client tests failed.${NC}"
+        exit 1
+    fi
+}
+
 # Тестирование C++ физического движка
 test_cpp_physics() {
     echo -e "${BLUE}Testing C++ Physics Engine...${NC}"
     
-    cd "${PROJECT_ROOT}/src/cpp_physics"
-    
-    if [ "$PLATFORM" = "windows" ]; then
-        ./build/test/physics_engine_test.exe > "${LOG_DIR}/physics_engine_test.log" 2>&1
-    else
-        ./build/test/physics_engine_test > "${LOG_DIR}/physics_engine_test.log" 2>&1
-    fi
+    cd "${PROJECT_ROOT}/src/cpp_physics/build"
+    ctest --output-on-failure > "${LOG_DIR}/cpp_physics_test.log" 2>&1
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}C++ Physics Engine tests passed.${NC}"
@@ -54,17 +109,17 @@ test_cpp_physics() {
     fi
 }
 
-# Тестирование Rust серверной части
-test_rust_server() {
-    echo -e "${BLUE}Testing Rust Game Server...${NC}"
+# Тестирование Go инструментов
+test_go_tools() {
+    echo -e "${BLUE}Testing Go Development Tools...${NC}"
     
-    cd "${PROJECT_ROOT}/src/rust_server"
-    cargo test > "${LOG_DIR}/rust_server_test.log" 2>&1
+    cd "${PROJECT_ROOT}/src/go_tools"
+    go test -v ./... > "${LOG_DIR}/go_tools_test.log" 2>&1
     
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Rust Game Server tests passed.${NC}"
+        echo -e "${GREEN}Go Development Tools tests passed.${NC}"
     else
-        echo -e "${RED}Rust Game Server tests failed.${NC}"
+        echo -e "${RED}Go Development Tools tests failed.${NC}"
         exit 1
     fi
 }
@@ -80,51 +135,6 @@ test_python_logic() {
         echo -e "${GREEN}Python Game Logic tests passed.${NC}"
     else
         echo -e "${RED}Python Game Logic tests failed.${NC}"
-        exit 1
-    fi
-}
-
-# Тестирование TypeScript клиентской части
-test_typescript_client() {
-    echo -e "${BLUE}Testing TypeScript Client...${NC}"
-    
-    cd "${PROJECT_ROOT}/src/typescript_client"
-    npm test > "${LOG_DIR}/typescript_client_test.log" 2>&1
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}TypeScript Client tests passed.${NC}"
-    else
-        echo -e "${RED}TypeScript Client tests failed.${NC}"
-        exit 1
-    fi
-}
-
-# Тестирование Julia ИИ системы
-test_julia_ai() {
-    echo -e "${BLUE}Testing Julia AI System...${NC}"
-    
-    cd "${PROJECT_ROOT}/src/julia_ai"
-    julia -e 'using Pkg; Pkg.test()' > "${LOG_DIR}/julia_ai_test.log" 2>&1
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Julia AI System tests passed.${NC}"
-    else
-        echo -e "${RED}Julia AI System tests failed.${NC}"
-        exit 1
-    fi
-}
-
-# Тестирование Go инструментов разработки
-test_go_tools() {
-    echo -e "${BLUE}Testing Go Development Tools...${NC}"
-    
-    cd "${PROJECT_ROOT}/src/go_tools"
-    go test ./... > "${LOG_DIR}/go_tools_test.log" 2>&1
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Go Development Tools tests passed.${NC}"
-    else
-        echo -e "${RED}Go Development Tools tests failed.${NC}"
         exit 1
     fi
 }
@@ -167,12 +177,13 @@ main() {
     detect_platform
     
     # Запуск тестов
-    test_cpp_physics
-    test_rust_server
-    test_python_logic
+    test_python_server
+    test_python_analytics
+    test_python_ai
     test_typescript_client
-    test_julia_ai
+    test_cpp_physics
     test_go_tools
+    test_python_logic
     test_scala_analytics
     test_integration
     

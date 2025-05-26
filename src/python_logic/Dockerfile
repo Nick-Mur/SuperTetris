@@ -3,12 +3,18 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Установка необходимых зависимостей
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Копируем общие утилиты
+COPY src/common_utils /app/common_utils
 
-# Копирование исходного кода
-COPY . .
+# Копируем код логики
+COPY src/python_logic /app/logic
 
-# Запуск сервиса
-CMD ["python", "game_logic.py"]
+# Устанавливаем зависимости
+COPY src/python_logic/requirements.txt .
+RUN pip install -r requirements.txt
+
+# Добавляем common_utils в PYTHONPATH
+ENV PYTHONPATH=/app:$PYTHONPATH
+
+# Запускаем логику
+CMD ["python", "logic/main.py"]

@@ -23,5 +23,8 @@ RUN mkdir -p /app/logs /app/data
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
+# Добавляем common_utils в PYTHONPATH
+ENV PYTHONPATH=/app:$PYTHONPATH
+
 # Запуск сервера
 CMD ["python", "src/main.py"] 

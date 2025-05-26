@@ -173,52 +173,6 @@ def test_python_typescript_integration():
         print(f"Error during test: {e}")
         return False
 
-# Функция для проверки интеграции между Rust и Julia
-def test_rust_julia_integration():
-    print("Testing Rust Server and Julia AI integration...")
-    
-    try:
-        # Создание новой игры с ИИ
-        response = requests.post(
-            "http://localhost:8080/api/v1/games",
-            json={"mode": "RACE", "players": 1, "ai_opponents": 1, "difficulty": "EASY"}
-        )
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
-            return False
-        
-        game_data = response.json()
-        if "gameId" not in game_data:
-            print("Error: Invalid response format (missing gameId)")
-            return False
-        
-        game_id = game_data["gameId"]
-        
-        # Ожидание действий ИИ
-        time.sleep(5)
-        
-        # Получение состояния игры
-        response = requests.get(f"http://localhost:8080/api/v1/games/{game_id}")
-        
-        if response.status_code != 200:
-            print(f"Error: Server returned status code {response.status_code}")
-            return False
-        
-        game_state = response.json()
-        
-        # Проверка наличия действий ИИ
-        if "ai_actions" not in game_state or len(game_state["ai_actions"]) == 0:
-            print("Error: No AI actions recorded")
-            return False
-        
-        print("Rust Server and Julia AI integration test passed.")
-        return True
-    
-    except Exception as e:
-        print(f"Error during test: {e}")
-        return False
-
 # Функция для проверки интеграции между Go и Rust
 def test_go_rust_integration():
     print("Testing Go Tools and Rust Server integration...")
@@ -476,7 +430,6 @@ def main():
         test_cpp_rust_integration,
         test_rust_python_integration,
         test_python_typescript_integration,
-        test_rust_julia_integration,
         test_go_rust_integration,
         test_scala_rust_integration,
         test_full_system

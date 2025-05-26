@@ -40,14 +40,6 @@ class TestTetrisIntegration(unittest.TestCase):
             stderr=subprocess.PIPE
         )
         
-        # Запуск системы ИИ (Julia)
-        cls.ai_process = subprocess.Popen(
-            ["julia", "ai_system.jl"],
-            cwd="../julia_ai",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        
         # Запуск системы аналитики (Scala)
         cls.analytics_process = subprocess.Popen(
             ["sbt", "run"],
@@ -68,7 +60,7 @@ class TestTetrisIntegration(unittest.TestCase):
         print("Stopping test services...")
         
         # Остановка процессов
-        for process in [cls.physics_process, cls.server_process, cls.ai_process, cls.analytics_process]:
+        for process in [cls.physics_process, cls.server_process, cls.analytics_process]:
             try:
                 process.terminate()
                 process.wait(timeout=5)

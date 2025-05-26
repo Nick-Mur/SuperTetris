@@ -10,9 +10,8 @@
 2. **Rust (Серверная часть)** - координирует все компоненты и обрабатывает сетевые взаимодействия
 3. **Python (Игровая логика)** - реализует правила игры и механики
 4. **TypeScript/JavaScript (Клиентская часть)** - обеспечивает пользовательский интерфейс
-5. **Julia (Искусственный интеллект)** - реализует ИИ противников
-6. **Go (Инструменты разработки)** - предоставляет инструменты для создания уровней и отладки
-7. **Scala (Аналитика)** - собирает и анализирует данные о игровом процессе
+5. **Go (Инструменты разработки)** - предоставляет инструменты для создания уровней и отладки
+6. **Scala (Аналитика)** - собирает и анализирует данные о игровом процессе
 
 ## Механизмы межъязыкового взаимодействия
 
@@ -80,12 +79,6 @@ WebSocket используется для двунаправленной свя�
          v                                  v
 +-------------------+      REST     +-------------------+
 | Julia AI System   |<------------->| Go Dev Tools      |
-+-------------------+              +-------------------+
-         ^                                  ^
-         | Message Queue                    | REST
-         v                                  v
-+-------------------+      REST     +-------------------+
-| Scala Analytics   |<------------->| External Services |
 +-------------------+              +-------------------+
 ```
 
@@ -161,42 +154,6 @@ socket.sendPlayerAction({
 socket.onGameStateUpdate((state) => {
   updateGameView(state);
 });
-```
-
-### Julia ИИ <-> Rust Серверная часть
-
-**Механизм:** FFI и Message Queue
-
-**Файлы интеграции:**
-- `/src/julia_ai/rust_bridge.jl` - Julia модуль для взаимодействия с Rust
-- `/src/rust_server/src/ai_interface.rs` - Rust модуль для взаимодействия с Julia AI
-
-**Пример использования:**
-```julia
-# В Julia коде
-module RustBridge
-
-using Libdl
-
-const rust_lib = Libdl.dlopen("libtetris_server.so")
-const get_game_state = Libdl.dlsym(rust_lib, :get_game_state)
-const send_ai_action = Libdl.dlsym(rust_lib, :send_ai_action)
-
-function fetch_game_state(game_id::String)
-    # Вызов Rust функции для получения состояния игры
-    result_ptr = ccall(get_game_state, Ptr{UInt8}, (Cstring,), game_id)
-    result = unsafe_string(result_ptr)
-    return JSON.parse(result)
-end
-
-function submit_action(game_id::String, action_type::String, action_data::Dict)
-    # Отправка действия ИИ в Rust сервер
-    action_json = JSON.json(action_data)
-    ccall(send_ai_action, Bool, (Cstring, Cstring, Cstring), 
-          game_id, action_type, action_json)
-end
-
-end # module
 ```
 
 ### Go Инструменты разработки <-> Rust Серверная часть
@@ -321,7 +278,6 @@ server.sendBalanceRecommendations(results.balanceRecommendations)
 - Rust 1.50+
 - Python 3.8+
 - Node.js 14+
-- Julia 1.6+
 - Go 1.16+
 - Scala 2.13+ с SBT
 - RabbitMQ
@@ -355,25 +311,19 @@ server.sendBalanceRecommendations(results.balanceRecommendations)
    npm run build
    ```
 
-5. Установка зависимостей Julia:
-   ```bash
-   cd src/julia_ai
-   julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
-   ```
-
-6. Сборка Go инструментов:
+5. Сборка Go инструментов:
    ```bash
    cd src/go_tools
    go build
    ```
 
-7. Сборка Scala аналитики:
+6. Сборка Scala аналитики:
    ```bash
    cd src/scala_analytics
    sbt compile
    ```
 
-8. Запуск интеграционных тестов:
+7. Запуск интеграционных тестов:
    ```bash
    cd tests
    ./run_integration_tests.sh

@@ -1,0 +1,110 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.docker/
+docker-compose.override.yml
+# Не исключаем docker-compose.yml и Dockerfile, так как они нужны для сборки
+
+# Build and test artifacts
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage/
+
+# Research and data
+research/data/
+*.csv
+*.xlsx
+*.xls
+*.db
+*.sqlite3
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project specific
+# Не исключаем build/ и dist/, так как они могут быть нужны для Docker
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.dylib
+*.dll
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+*.lz
+*.lzma
+*.tlz
+*.txz
+*.zip
+*.tar
+*.tgz
+*.tbz2
+*.tbz
+*.txz
+*.lzma
+*.tlz
+*.xz 

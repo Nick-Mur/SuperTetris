@@ -79,138 +79,80 @@ check_dependencies() {
     echo -e "${GREEN}All dependencies are installed.${NC}"
 }
 
-# Сборка C++ физического движка
-build_cpp_physics() {
-    echo -e "${BLUE}Building C++ Physics Engine...${NC}"
+# Сборка Python серверной части
+build_python_server() {
+    echo -e "${BLUE}Building Python Game Server...${NC}"
     
-    CPP_DIR="${PROJECT_ROOT}/src/cpp_physics"
-    CPP_BUILD_DIR="${BUILD_DIR}/cpp_physics"
-    
-    mkdir -p "${CPP_BUILD_DIR}"
-    cd "${CPP_BUILD_DIR}"
-    
-    cmake "${CPP_DIR}" -DCMAKE_BUILD_TYPE=Release
-    cmake --build . --config Release
-    
-    # Копирование библиотеки в директорию сборки
-    mkdir -p "${DIST_DIR}/lib"
-    
-    if [ "$PLATFORM" = "windows" ]; then
-        cp "${CPP_BUILD_DIR}/Release/physics_engine.dll" "${DIST_DIR}/lib/"
-    elif [ "$PLATFORM" = "macos" ]; then
-        cp "${CPP_BUILD_DIR}/libphysics_engine.dylib" "${DIST_DIR}/lib/"
-    else
-        cp "${CPP_BUILD_DIR}/libphysics_engine.so" "${DIST_DIR}/lib/"
-    fi
-    
-    echo -e "${GREEN}C++ Physics Engine built successfully.${NC}"
-}
-
-# Сборка Rust серверной части
-build_rust_server() {
-    echo -e "${BLUE}Building Rust Game Server...${NC}"
-    
-    RUST_DIR="${PROJECT_ROOT}/src/rust_server"
-    
-    cd "${RUST_DIR}"
-    cargo build --release
-    
-    # Копирование исполняемого файла в директорию сборки
-    mkdir -p "${DIST_DIR}/bin"
-    
-    if [ "$PLATFORM" = "windows" ]; then
-        cp "${RUST_DIR}/target/release/tetris_server.exe" "${DIST_DIR}/bin/"
-    else
-        cp "${RUST_DIR}/target/release/tetris_server" "${DIST_DIR}/bin/"
-    fi
-    
-    echo -e "${GREEN}Rust Game Server built successfully.${NC}"
-}
-
-# Установка зависимостей Python для игровой логики
-setup_python_logic() {
-    echo -e "${BLUE}Setting up Python Game Logic...${NC}"
-    
-    PYTHON_DIR="${PROJECT_ROOT}/src/python_logic"
+    PYTHON_DIR="${PROJECT_ROOT}/src/python_server"
     
     cd "${PYTHON_DIR}"
-    python3 -m pip install -r requirements.txt
+    pip install -r requirements.txt
     
-    # Копирование Python файлов в директорию сборки
-    mkdir -p "${DIST_DIR}/python"
-    cp -r "${PYTHON_DIR}"/* "${DIST_DIR}/python/"
-    
-    echo -e "${GREEN}Python Game Logic setup completed.${NC}"
+    echo -e "${GREEN}Python Game Server built successfully.${NC}"
 }
 
-# Сборка TypeScript клиентской части
+# Сборка Python аналитики
+build_python_analytics() {
+    echo -e "${BLUE}Building Python Analytics System...${NC}"
+    
+    ANALYTICS_DIR="${PROJECT_ROOT}/src/python_analytics"
+    
+    cd "${ANALYTICS_DIR}"
+    pip install -r requirements.txt
+    
+    echo -e "${GREEN}Python Analytics System built successfully.${NC}"
+}
+
+# Сборка Python ИИ
+build_python_ai() {
+    echo -e "${BLUE}Building Python AI System...${NC}"
+    
+    AI_DIR="${PROJECT_ROOT}/src/python_ai"
+    
+    cd "${AI_DIR}"
+    pip install -r requirements.txt
+    
+    echo -e "${GREEN}Python AI System built successfully.${NC}"
+}
+
+# Сборка TypeScript клиента
 build_typescript_client() {
     echo -e "${BLUE}Building TypeScript Client...${NC}"
     
-    TS_DIR="${PROJECT_ROOT}/src/typescript_client"
+    CLIENT_DIR="${PROJECT_ROOT}/src/typescript_client"
     
-    cd "${TS_DIR}"
+    cd "${CLIENT_DIR}"
     npm install
     npm run build
-    
-    # Копирование собранных файлов в директорию сборки
-    mkdir -p "${DIST_DIR}/client"
-    cp -r "${TS_DIR}/dist"/* "${DIST_DIR}/client/"
     
     echo -e "${GREEN}TypeScript Client built successfully.${NC}"
 }
 
-# Установка зависимостей Julia для ИИ
-setup_julia_ai() {
-    echo -e "${BLUE}Setting up Julia AI System...${NC}"
+# Сборка C++ физического движка
+build_cpp_physics() {
+    echo -e "${BLUE}Building C++ Physics Engine...${NC}"
     
-    JULIA_DIR="${PROJECT_ROOT}/src/julia_ai"
+    PHYSICS_DIR="${PROJECT_ROOT}/src/cpp_physics"
     
-    cd "${JULIA_DIR}"
-    julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
+    cd "${PHYSICS_DIR}"
+    mkdir -p build
+    cd build
+    cmake ..
+    make
     
-    # Копирование Julia файлов в директорию сборки
-    mkdir -p "${DIST_DIR}/julia"
-    cp -r "${JULIA_DIR}"/* "${DIST_DIR}/julia/"
-    
-    echo -e "${GREEN}Julia AI System setup completed.${NC}"
+    echo -e "${GREEN}C++ Physics Engine built successfully.${NC}"
 }
 
-# Сборка Go инструментов разработки
+# Сборка Go инструментов
 build_go_tools() {
     echo -e "${BLUE}Building Go Development Tools...${NC}"
     
     GO_DIR="${PROJECT_ROOT}/src/go_tools"
     
     cd "${GO_DIR}"
-    go build -o "${BUILD_DIR}/go_tools/dev_tools"
-    
-    # Копирование исполняемого файла в директорию сборки
-    mkdir -p "${DIST_DIR}/bin"
-    
-    if [ "$PLATFORM" = "windows" ]; then
-        cp "${BUILD_DIR}/go_tools/dev_tools.exe" "${DIST_DIR}/bin/"
-    else
-        cp "${BUILD_DIR}/go_tools/dev_tools" "${DIST_DIR}/bin/"
-    fi
+    go build -o "${DIST_DIR}/bin/dev_tools"
     
     echo -e "${GREEN}Go Development Tools built successfully.${NC}"
-}
-
-# Сборка Scala аналитики
-build_scala_analytics() {
-    echo -e "${BLUE}Building Scala Analytics System...${NC}"
-    
-    SCALA_DIR="${PROJECT_ROOT}/src/scala_analytics"
-    
-    cd "${SCALA_DIR}"
-    sbt clean assembly
-    
-    # Копирование JAR-файла в директорию сборки
-    mkdir -p "${DIST_DIR}/lib"
-    cp "${SCALA_DIR}/target/scala-2.13/tetris-towers-analytics-assembly-1.0.0.jar" "${DIST_DIR}/lib/"
-    
-    echo -e "${GREEN}Scala Analytics System built successfully.${NC}"
 }
 
 # Создание конфигурационных файлов
@@ -414,37 +356,38 @@ create_archive() {
 run_tests() {
     echo -e "${BLUE}Running tests...${NC}"
     
+    # Запуск тестов Python серверной части
+    echo "Running Python Game Server tests..."
+    cd "${PROJECT_ROOT}/src/python_server"
+    python -m pytest tests/
+    
+    # Запуск тестов Python аналитики
+    echo "Running Python Analytics tests..."
+    cd "${PROJECT_ROOT}/src/python_analytics"
+    python -m pytest tests/
+    
+    # Запуск тестов Python ИИ
+    echo "Running Python AI tests..."
+    cd "${PROJECT_ROOT}/src/python_ai"
+    python -m pytest tests/
+    
+    # Запуск тестов TypeScript клиента
+    echo "Running TypeScript Client tests..."
+    cd "${PROJECT_ROOT}/src/typescript_client"
+    npm test
+    
     # Запуск тестов C++ физического движка
     echo "Running C++ Physics Engine tests..."
-    cd "${BUILD_DIR}/cpp_physics"
-    ctest -C Release
-    
-    # Запуск тестов Rust серверной части
-    echo "Running Rust Game Server tests..."
-    cd "${PROJECT_ROOT}/src/rust_server"
-    cargo test
-    
-    # Запуск тестов Python игровой логики
-    echo "Running Python Game Logic tests..."
-    cd "${PROJECT_ROOT}/src/python_logic"
-    python3 -m unittest discover -s tests
-    
-    # Запуск тестов Julia ИИ
-    echo "Running Julia AI tests..."
-    cd "${PROJECT_ROOT}/src/julia_ai"
-    julia -e 'using Pkg; Pkg.activate("."); Pkg.test()'
+    cd "${PROJECT_ROOT}/src/cpp_physics"
+    cd build
+    ctest
     
     # Запуск тестов Go инструментов
-    echo "Running Go Development Tools tests..."
+    echo "Running Go Tools tests..."
     cd "${PROJECT_ROOT}/src/go_tools"
     go test ./...
     
-    # Запуск тестов Scala аналитики
-    echo "Running Scala Analytics tests..."
-    cd "${PROJECT_ROOT}/src/scala_analytics"
-    sbt test
-    
-    echo -e "${GREEN}All tests passed successfully.${NC}"
+    echo -e "${GREEN}All tests passed.${NC}"
 }
 
 # Основная функция сборки
@@ -458,23 +401,20 @@ main() {
     check_dependencies
     
     # Сборка компонентов
-    build_cpp_physics
-    build_rust_server
-    setup_python_logic
+    build_python_server
+    build_python_analytics
+    build_python_ai
     build_typescript_client
-    setup_julia_ai
+    build_cpp_physics
     build_go_tools
-    build_scala_analytics
     
     # Создание конфигурационных файлов и скриптов запуска
     create_config_files
     create_launch_scripts
     create_documentation
     
-    # Запуск тестов (опционально)
-    if [ "$RUN_TESTS" = "true" ]; then
-        run_tests
-    fi
+    # Запуск тестов
+    run_tests
     
     # Создание архива
     create_archive
@@ -510,3 +450,4 @@ done
 
 # Запуск основной функции
 main
+

@@ -114,29 +114,6 @@ def get_ai_move(game_state, player_id):
     return json.loads(response.text)
 ```
 
-```julia
-# Julia (система ИИ)
-using HTTP
-using JSON
-
-function start_ai_server()
-    router = HTTP.Router()
-    
-    HTTP.register!(router, "POST", "/ai/predict_move", function(request)
-        body = JSON.parse(String(request.body))
-        game_state = body["game_state"]
-        player_id = body["player_id"]
-        
-        # Анализ состояния и предсказание хода
-        move = predict_move(game_state, player_id)
-        
-        return HTTP.Response(200, JSON.json(move))
-    end)
-    
-    HTTP.serve(router, "0.0.0.0", 8001)
-end
-```
-
 ### 4. Серверная часть (Rust) и Клиентская часть (TypeScript/JS)
 
 Взаимодействие через WebSocket для обновлений в реальном времени и REST API для запросов.
