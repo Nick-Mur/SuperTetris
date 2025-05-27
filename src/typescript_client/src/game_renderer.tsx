@@ -157,8 +157,9 @@ export class GameRenderer {
       for (let i = 0; i < 5; i++) {
         frames.push(PIXI.Texture.from(`assets/spell_animations/${(type as string).toLowerCase()}_${i}.png`));
       }
-      // Создаем анимированный спрайт из текстур
-      this.spellAnimations.set(type, PIXI.AnimatedSprite.fromFrames(frames as PIXI.Texture[]));
+      // Создаем анимированный спрайт из загруженных текстур
+      const animatedSprite = PIXI.AnimatedSprite.fromFrames(frames as any);
+      this.spellAnimations.set(type, animatedSprite);
       this.gameContainer.addChild(this.spellAnimations.get(type)!);
     });
   }
