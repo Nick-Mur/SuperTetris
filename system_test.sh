@@ -109,17 +109,19 @@ test_cpp_physics() {
     fi
 }
 
-# Тестирование Go инструментов
-test_go_tools() {
-    echo -e "${BLUE}Testing Go Development Tools...${NC}"
+# Тестирование Python инструментов
+test_python_tools() {
+    echo -e "${BLUE}Testing Python Development Tools...${NC}"
     
-    cd "${PROJECT_ROOT}/src/go_tools"
-    go test -v ./... > "${LOG_DIR}/go_tools_test.log" 2>&1
+    PYTHON_DIR="${PROJECT_ROOT}/src/python_tools"
+    
+    cd "${PYTHON_DIR}"
+    python -m pytest tests/
     
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Go Development Tools tests passed.${NC}"
+        echo -e "${GREEN}Python Development Tools tests passed.${NC}"
     else
-        echo -e "${RED}Go Development Tools tests failed.${NC}"
+        echo -e "${RED}Python Development Tools tests failed.${NC}"
         exit 1
     fi
 }
@@ -167,7 +169,7 @@ main() {
     test_python_ai
     test_typescript_client
     test_cpp_physics
-    test_go_tools
+    test_python_tools
     test_python_logic
     test_integration
     

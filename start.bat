@@ -47,14 +47,21 @@ cd /D "%PROJECT_ROOT%src\cpp_physics\build"
 start /B physics_engine.exe > "%LOG_DIR%\cpp_physics.log" 2>&1
 echo %GREEN%C++ Physics Engine started.%NC%
 
-:: Запуск Go инструментов
-echo %BLUE%Starting Go Development Tools...%NC%
-cd /D "%PROJECT_ROOT%src\go_tools"
-start /B dev_tools.exe > "%LOG_DIR%\go_tools.log" 2>&1
-echo %GREEN%Go Development Tools started.%NC%
+:: Запуск Python инструментов
+echo %BLUE%Starting Python Development Tools...%NC%
+start_python_tools
 
 echo %GREEN%All components started successfully!%NC%
 echo Open http://localhost:3000 in your browser to play the game.
 
 :: Ожидание нажатия Ctrl+C для завершения
 pause > nul 
+
+start_python_tools() {
+    echo Starting Python Development Tools...
+    
+    cd src\python_tools
+    python main.py
+    
+    echo Python Development Tools started.
+} 

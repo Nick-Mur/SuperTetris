@@ -1,4 +1,4 @@
- # Руководство по развертыванию
+# Руководство по развертыванию
 
 ## Требования
 
@@ -6,19 +6,16 @@
 
 - Python 3.10+
 - Node.js 18+
-- Go 1.21+
 - C++ 20
 - Docker
 - Docker Compose
 - PostgreSQL 15+
 - Redis 7+
-- MongoDB 6+
 
 ### Зависимости
 
 - Python зависимости: `requirements.txt`
 - Node.js зависимости: `package.json`
-- Go зависимости: `go.mod`
 - C++ зависимости: `CMakeLists.txt`
 
 ## Исключенные файлы (.gitignore)
@@ -69,22 +66,17 @@ cd tetris
 
 ```bash
 # Python зависимости
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 
 # Node.js зависимости
 cd src/typescript_client
 npm install
 cd ../..
 
-# Go зависимости
-cd src/go_tools
-go mod download
-cd ../..
-
 # C++ зависимости
 cd src/cpp_physics
-cmake -B build
-cmake --build build
+cmake .
+make
 cd ../..
 ```
 
@@ -111,11 +103,6 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE tetris TO tetris;"
 redis-cli
 > AUTH password
 > FLUSHALL
-
-# MongoDB
-mongosh
-> use tetris
-> db.createUser({user: "tetris", pwd: "password", roles: ["readWrite"]})
 ```
 
 ## Развертывание
@@ -123,14 +110,14 @@ mongosh
 ### Развертывание через Docker
 
 ```bash
-# Сборка образов
-docker-compose build
+# Сборка и запуск
+docker-compose up --build
 
-# Запуск контейнеров
+# Запуск в фоновом режиме
 docker-compose up -d
 
-# Проверка статуса
-docker-compose ps
+# Остановка
+docker-compose down
 ```
 
 ### Развертывание вручную
@@ -156,10 +143,34 @@ npm run start
 # Запуск C++ Physics Engine
 cd src/cpp_physics
 ./build/physics_engine
+```
 
-# Запуск Go Development Tools
-cd src/go_tools
-go run main.go
+## Конфигурация
+Основные настройки находятся в файле `docker-compose.yml`:
+
+```yaml
+services:
+  python-tools:
+    build:
+      context: ./src/python_tools
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - DB_URL=postgresql://user:password@postgres:5432/tetris
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tetris_network
 ```
 
 ## Мониторинг
@@ -174,6 +185,17 @@ go run main.go
 
 - ELK Stack: http://localhost:5601
 - Jaeger: http://localhost:16686
+
+```bash
+# Просмотр логов
+docker-compose logs -f python-tools
+
+# Статус контейнеров
+docker-compose ps
+
+# Использование ресурсов
+docker stats
+```
 
 ## Масштабирование
 
@@ -212,24 +234,11 @@ services:
 
 ```bash
 # PostgreSQL
-pg_dump -U tetris tetris > backup.sql
-
-# MongoDB
-mongodump --db tetris --out backup
+pg_dump -U postgres tetris_analytics > backup.sql
 
 # Redis
 redis-cli SAVE
-cp /var/lib/redis/dump.rdb backup.rdb
-```
-
-### Логи
-
-```bash
-# Архивация логов
-tar -czf logs.tar.gz logs/
-
-# Ротация логов
-logrotate /etc/logrotate.d/tetris
+cp /var/lib/redis/dump.rdb backup/
 ```
 
 ## Обновление
@@ -237,36 +246,32 @@ logrotate /etc/logrotate.d/tetris
 ### Обновление через Docker
 
 ```bash
-# Получение обновлений
+# Остановка контейнеров
+docker-compose down
+
+# Обновление кода
 git pull
 
-# Пересборка образов
-docker-compose build
-
-# Перезапуск контейнеров
-docker-compose up -d
+# Пересборка и запуск
+docker-compose up --build -d
 ```
 
 ### Обновление вручную
 
 ```bash
 # Обновление Python зависимостей
-python -m pip install -r requirements.txt --upgrade
+pip install -r requirements.txt --upgrade
 
 # Обновление Node.js зависимостей
 cd src/typescript_client
 npm update
 cd ../..
 
-# Обновление Go зависимостей
-cd src/go_tools
-go get -u ./...
-cd ../..
-
 # Пересборка C++
 cd src/cpp_physics
-cmake -B build
-cmake --build build
+cmake .
+make clean
+make
 cd ../..
 ```
 
@@ -285,22 +290,19 @@ docker-compose up -d
 
 ```bash
 # Откат Python зависимостей
-python -m pip install -r requirements.txt --upgrade --force-reinstall
+pip install -r requirements.txt
 
 # Откат Node.js зависимостей
 cd src/typescript_client
 npm ci
 cd ../..
 
-# Откат Go зависимостей
-cd src/go_tools
-go mod tidy
-cd ../..
-
 # Пересборка C++
 cd src/cpp_physics
-cmake -B build
-cmake --build build
+git checkout .
+cmake .
+make clean
+make
 cd ../..
 ```
 
@@ -345,13 +347,11 @@ ufw enable
 # Проверка зависимостей
 safety check
 npm audit
-go list -json -m all | nancy
 
 # Сканирование кода
 bandit -r .
 pylint .
 npm run security
-gosec ./...
 cppcheck .
 ```
 
@@ -369,7 +369,6 @@ tail -f logs/python_analytics.log
 tail -f logs/python_ai.log
 tail -f logs/typescript_client.log
 tail -f logs/cpp_physics.log
-tail -f logs/go_tools.log
 ```
 
 ### Отладка
@@ -380,9 +379,6 @@ python -m pdb main.py
 
 # TypeScript
 node --inspect main.js
-
-# Go
-dlv debug main.go
 
 # C++
 gdb ./physics_engine
@@ -415,9 +411,6 @@ sphinx-build -b html docs/source docs/build/html
 # TypeScript
 npm run docs
 
-# Go
-godoc -http=:6060
-
 # C++
 doxygen Doxyfile
 ```
@@ -430,9 +423,6 @@ open docs/build/html/index.html
 
 # TypeScript
 npm run docs:serve
-
-# Go
-open http://localhost:6060
 
 # C++
 open docs/html/index.html

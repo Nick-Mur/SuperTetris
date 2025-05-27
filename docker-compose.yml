@@ -106,26 +106,6 @@ services:
     networks:
       - tetris_network
 
-  # Go Development Tools
-  go-tools:
-    build:
-      context: ./src/go_tools
-      dockerfile: Dockerfile
-    volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-    environment:
-      - LOG_LEVEL=INFO
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tetris_analytics
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - tetris_network
-
   # Python Analytics
   python-analytics:
     build:
@@ -195,6 +175,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - tetris_network
+
+  # Python Development Tools
+  python-tools:
+    build:
+      context: ./src/python_tools
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tetris_analytics
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/dev/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - tetris_network
 

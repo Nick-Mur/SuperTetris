@@ -100,6 +100,7 @@ class TestTetrisIntegration(unittest.TestCase):
             except subprocess.TimeoutExpired:
                 process.kill()
             except Exception as e:
+                pass
     
     def test_01_server_health(self):
         """Проверка доступности сервера"""

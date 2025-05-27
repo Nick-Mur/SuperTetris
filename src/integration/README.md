@@ -2,95 +2,241 @@
 
 ## Архитектура
 
-Проект состоит из следующих основных компонентов:
+Проект реализован как мультиязычное приложение, где каждый компонент написан на наиболее подходящем для его задач языке:
 
-1. **Python (Игровая логика)** - основная логика игры
-2. **TypeScript (Клиентская часть)** - пользовательский интерфейс
-3. **C++ (Физический движок)** - физика и коллизии
-4. **Go (Инструменты разработки)** - утилиты для разработки
-5. **Python (Аналитика)** - сбор и анализ данных о игровом процессе
+1. **Python (Game Logic)**
+   - Основная логика игры
+   - Управление состоянием
+   - Обработка событий
+   - Интеграция с другими компонентами
+
+2. **TypeScript (Client Side)**
+   - Пользовательский интерфейс
+   - Визуализация игры
+   - Обработка пользовательского ввода
+   - Сетевое взаимодействие
+
+3. **C++ (Physics Engine)**
+   - Физическая симуляция
+   - Обработка коллизий
+   - Расчет физики блоков
+   - Оптимизация производительности
+
+4. **Python (Development Tools)**
+   - Инструменты разработки
+   - Утилиты для тестирования
+   - Системы мониторинга
+   - Автоматизация сборки
+
+5. **Python (Analytics)**
+   - Сбор метрик
+   - Анализ данных
+   - Генерация отчетов
+   - Оптимизация игрового процесса
 
 ## Механизмы взаимодействия
 
-### Python Игровая логика <-> TypeScript Клиентская часть
-- REST API для основных операций
-- WebSocket для реального времени
-- Файлы: 
-  - `/src/python_logic/api/endpoints.py` - Python API endpoints
-  - `/src/typescript_client/api/client.ts` - TypeScript API клиент
+### REST API
+- **Эндпоинты**: `/api/game`, `/api/analytics`, `/api/tools`
+- **Протокол**: HTTP/HTTPS
+- **Формат данных**: JSON
+- **Аутентификация**: JWT токены
 
-### Python Игровая логика <-> C++ Физический движок
-- FFI (Foreign Function Interface)
-- Файлы:
-  - `/src/python_logic/physics/bindings.py` - Python bindings
-  - `/src/cpp_physics/include/PhysicsEngine.h` - C++ интерфейс
+### WebSocket
+- **События**: `game_state_update`, `player_action`, `analytics_event`
+- **Протокол**: WS/WSS
+- **Формат данных**: JSON
+- **Подписка**: По сессии игры
 
-### Python Игровая логика <-> Go Инструменты
-- REST API
-- Файлы:
-  - `/src/python_logic/tools/interface.py` - Python интерфейс
-  - `/src/go_tools/api/server.go` - Go API сервер
+### FFI (Foreign Function Interface)
+- **Назначение**: Прямые вызовы функций между языками
+- **Использование**: Python <-> C++
+- **Типы данных**: Примитивные типы и структуры
+- **Управление памятью**: Автоматическое
 
-### Python Аналитика <-> Python Игровая логика
-- REST API
-- Файлы:
-  - `/src/python_analytics/api/endpoints.py` - API endpoints
-  - `/src/python_logic/analytics/client.py` - API клиент
+## Схема интеграции
+
+```
+[TypeScript Client] <---> [Python Game Logic] <---> [C++ Physics]
+        ^                        ^                        ^
+        |                        |                        |
+        v                        v                        v
+[Python Tools] <------------> [Python Analytics] <----> [FFI Bindings]
+```
+
+### Пути к коду
+
+- Python API endpoints: `/src/python_logic/api/endpoints.py`
+- TypeScript API client: `/src/typescript_client/api/client.ts`
+- Python bindings to C++: `/src/python_logic/physics/bindings.py`
+- Python Tools API: `/src/python_tools/api/server.py`
 
 ## Требования к окружению
 
 - Python 3.10+
 - Node.js 18+
-- Go 1.21+
 - C++ 20
 - Docker
 - Docker Compose
 
 ## Установка и запуск
 
-1. Клонирование репозитория:
-```bash
-git clone https://github.com/your-username/tetris.git
-cd tetris
-```
-
-2. Установка зависимостей:
-```bash
-# Python зависимости
-pip install -r requirements.txt
-
-# Node.js зависимости
-cd src/typescript_client
-npm install
-cd ../..
-
-# Go зависимости
-cd src/go_tools
-go mod download
-cd ../..
-
-# C++ зависимости
-cd src/cpp_physics
-cmake -B build
-cmake --build build
-cd ../..
-```
-
-3. Запуск всех компонентов:
-```bash
-./start.sh
-```
+1. Клонировать репозиторий
+2. Установить зависимости для каждого компонента:
+   ```bash
+   # Python
+   pip install -r requirements.txt
+   
+   # TypeScript
+   npm install
+   
+   # C++
+   cmake .
+   make
+   ```
+3. Запустить все компоненты:
+   ```bash
+   docker-compose up
+   ```
 
 ## Тестирование
 
-```bash
-# Запуск всех тестов
-./system_test.sh
+### Запуск тестов
 
-# Или запуск тестов отдельных компонентов
-cd src/python_logic && python -m pytest
-cd src/typescript_client && npm test
-cd src/cpp_physics && ctest
-cd src/go_tools && go test ./...
-cd src/python_analytics && python -m pytest
+```bash
+# Python
+pytest
+
+# TypeScript
+npm test
+
+# C++
+ctest
 ```
+
+### Интеграционные тесты
+
+```bash
+# Запуск всех интеграционных тестов
+./run_integration_tests.sh
+
+# Запуск тестов конкретного компонента
+./run_integration_tests.sh --component python
+./run_integration_tests.sh --component typescript
+./run_integration_tests.sh --component cpp
+```
+
+## Мониторинг
+
+### Метрики
+
+- Время отклика API
+- FPS клиента
+- Использование CPU/памяти
+- Количество активных сессий
+- Статистика игрового процесса
+
+### Логирование
+
+- Уровни логирования: DEBUG, INFO, WARNING, ERROR
+- Формат: JSON
+- Ротация логов
+- Централизованный сбор
+
+## Безопасность
+
+### Аутентификация
+
+- JWT токены
+- OAuth 2.0
+- Двухфакторная аутентификация
+
+### Шифрование
+
+- TLS для всех соединений
+- Шифрование данных в rest
+- Безопасное хранение секретов
+
+## Масштабирование
+
+### Горизонтальное масштабирование
+
+- Балансировка нагрузки
+- Репликация данных
+- Кэширование
+
+### Вертикальное масштабирование
+
+- Оптимизация ресурсов
+- Мониторинг производительности
+- Автоматическое масштабирование
+
+## Развертывание
+
+### CI/CD
+
+- Автоматическая сборка
+- Тестирование
+- Развертывание
+- Мониторинг
+
+### Контейнеризация
+
+- Docker образы
+- Docker Compose
+- Kubernetes
+
+## Документация
+
+### API
+
+- OpenAPI/Swagger
+- Примеры запросов
+- Описание эндпоинтов
+
+### Разработка
+
+- Руководство по стилю кода
+- Процесс разработки
+- Тестирование
+
+### Развертывание
+
+- Требования к окружению
+- Процесс развертывания
+- Мониторинг и поддержка
+
+## Интеграция компонентов
+
+### Python Tools
+- Редактор уровней -> Python Logic
+- Генератор уровней -> Python Logic
+- Анализатор -> Python Analytics
+- Профилировщик -> Python Logic
+
+### Python Logic
+- Игровая логика -> TypeScript Client
+- Игровая логика -> C++ Physics
+- Валидация -> Python Tools
+- События -> Python Analytics
+
+### Python Analytics
+- Метрики -> PostgreSQL
+- Отчеты -> Redis
+- Визуализация -> TypeScript Client
+- Анализ -> Python AI
+
+### Python AI
+- Генерация -> Python Logic
+- Анализ -> Python Analytics
+- Оптимизация -> Python Tools
+- Предсказания -> TypeScript Client
+
+### TypeScript Client
+- UI -> Python Logic
+- Ввод -> Python Logic
+- Рендеринг -> C++ Physics
+- Сеть -> Python Tools
+
+### C++ Physics
+- Физика -> Python Logic

@@ -84,14 +84,16 @@ start_cpp_physics() {
     echo -e "${GREEN}C++ Physics Engine started.${NC}"
 }
 
-# Запуск Go инструментов
-start_go_tools() {
-    echo -e "${BLUE}Starting Go Development Tools...${NC}"
+# Запуск Python инструментов
+start_python_tools() {
+    echo -e "${BLUE}Starting Python Development Tools...${NC}"
     
-    cd "${PROJECT_ROOT}/src/go_tools"
-    ./dev_tools > "${LOG_DIR}/go_tools.log" 2>&1 &
+    PYTHON_DIR="${PROJECT_ROOT}/src/python_tools"
     
-    echo -e "${GREEN}Go Development Tools started.${NC}"
+    cd "${PYTHON_DIR}"
+    python main.py &
+    
+    echo -e "${GREEN}Python Development Tools started.${NC}"
 }
 
 # Обработка сигналов завершения
@@ -124,7 +126,7 @@ main() {
     start_python_ai
     start_typescript_client
     start_cpp_physics
-    start_go_tools
+    start_python_tools
     
     echo -e "${GREEN}All components started successfully!${NC}"
     echo -e "Open http://localhost:3000 in your browser to play the game."

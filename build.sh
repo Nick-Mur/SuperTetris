@@ -138,16 +138,18 @@ build_cpp_physics() {
     echo -e "${GREEN}C++ Physics Engine built successfully.${NC}"
 }
 
-# Сборка Go инструментов
-build_go_tools() {
-    echo -e "${BLUE}Building Go Development Tools...${NC}"
+# Сборка Python инструментов
+build_python_tools() {
+    echo -e "${BLUE}Building Python Development Tools...${NC}"
     
-    GO_DIR="${PROJECT_ROOT}/src/go_tools"
+    PYTHON_DIR="${PROJECT_ROOT}/src/python_tools"
+    DIST_DIR="${PROJECT_ROOT}/dist"
     
-    cd "${GO_DIR}"
-    go build -o "${DIST_DIR}/bin/dev_tools"
+    cd "${PYTHON_DIR}"
+    python -m pip install -r requirements.txt
+    python -m PyInstaller --onefile main.py -o "${DIST_DIR}/bin/dev_tools"
     
-    echo -e "${GREEN}Go Development Tools built successfully.${NC}"
+    echo -e "${GREEN}Python Development Tools built successfully.${NC}"
 }
 
 # Создание конфигурационных файлов
@@ -377,10 +379,10 @@ run_tests() {
     cd build
     ctest
     
-    # Запуск тестов Go инструментов
-    echo "Running Go Tools tests..."
-    cd "${PROJECT_ROOT}/src/go_tools"
-    go test ./...
+    # Запуск тестов Python инструментов
+    echo "Running Python Tools tests..."
+    cd "${PROJECT_ROOT}/src/python_tools"
+    python -m pytest tests/
     
     echo -e "${GREEN}All tests passed.${NC}"
 }
@@ -401,7 +403,7 @@ main() {
     build_python_ai
     build_typescript_client
     build_cpp_physics
-    build_go_tools
+    build_python_tools
     
     # Создание конфигурационных файлов и скриптов запуска
     create_config_files

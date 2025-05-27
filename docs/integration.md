@@ -22,7 +22,7 @@
    - Расчет физики блоков
    - Оптимизация производительности
 
-4. **Go (Development Tools)**
+4. **Python (Development Tools)**
    - Инструменты разработки
    - Утилиты для тестирования
    - Системы мониторинга
@@ -61,7 +61,7 @@
         ^                        ^                        ^
         |                        |                        |
         v                        v                        v
-[Go Tools] <----------------> [Python Analytics] <----> [FFI Bindings]
+[Python Tools] <------------> [Python Analytics] <----> [FFI Bindings]
 ```
 
 ### Пути к коду
@@ -69,13 +69,12 @@
 - Python API endpoints: `/src/python_logic/api/endpoints.py`
 - TypeScript API client: `/src/typescript_client/api/client.ts`
 - Python bindings to C++: `/src/python_logic/physics/bindings.py`
-- Go API server: `/src/go_tools/api/server.go`
+- Python Tools API: `/src/python_tools/api/server.py`
 
 ## Требования к окружению
 
 - Python 3.10+
 - Node.js 18+
-- Go 1.21+
 - C++ 20
 - Docker
 - Docker Compose
@@ -90,9 +89,6 @@
    
    # TypeScript
    npm install
-   
-   # Go
-   go mod download
    
    # C++
    cmake .
@@ -114,9 +110,6 @@ pytest
 # TypeScript
 npm test
 
-# Go
-go test ./...
-
 # C++
 ctest
 ```
@@ -131,7 +124,6 @@ ctest
 ./run_integration_tests.sh --component python
 ./run_integration_tests.sh --component typescript
 ./run_integration_tests.sh --component cpp
-./run_integration_tests.sh --component go
 ```
 
 ## Мониторинг
@@ -213,3 +205,254 @@ ctest
 - Требования к окружению
 - Процесс развертывания
 - Мониторинг и поддержка
+
+## Интеграция компонентов
+
+### Python Tools
+- Редактор уровней -> Python Logic
+- Генератор уровней -> Python Logic
+- Анализатор -> Python Analytics
+- Профилировщик -> Python Logic
+
+### Python Logic
+- Игровая логика -> TypeScript Client
+- Игровая логика -> C++ Physics
+- Валидация -> Python Tools
+- События -> Python Analytics
+
+### Python Analytics
+- Метрики -> PostgreSQL
+- Отчеты -> Redis
+- Визуализация -> TypeScript Client
+- Анализ -> Python AI
+
+### Python AI
+- Генерация -> Python Logic
+- Анализ -> Python Analytics
+- Оптимизация -> Python Tools
+- Предсказания -> TypeScript Client
+
+### TypeScript Client
+- UI -> Python Logic
+- Ввод -> Python Logic
+- Рендеринг -> C++ Physics
+- Сеть -> Python Tools
+
+### C++ Physics
+- Физика -> Python Logic
+- Коллизии -> Python Logic
+- Симуляция -> Python Logic
+- Оптимизация -> Python Tools
+
+## API Endpoints
+
+### Python Tools API
+```python
+# Статус API
+GET /status
+Response: {
+    "status": "ok",
+    "version": "1.0.0",
+    "timestamp": "2024-01-01T00:00:00Z"
+}
+
+# Создание уровня
+POST /levels
+Request: {
+    "name": "level1",
+    "difficulty": "easy",
+    "grid_size": {"width": 10, "height": 20},
+    "blocks": [...],
+    "spawn_points": [...]
+}
+Response: {
+    "status": "created",
+    "level_id": "level1"
+}
+
+# Список уровней
+GET /levels
+Response: {
+    "levels": [
+        {
+            "name": "level1",
+            "difficulty": "easy",
+            "created_at": "2024-01-01T00:00:00Z"
+        },
+        ...
+    ]
+}
+
+# Данные уровня
+GET /levels/{level_name}
+Response: {
+    "name": "level1",
+    "difficulty": "easy",
+    "grid_size": {"width": 10, "height": 20},
+    "blocks": [...],
+    "spawn_points": [...],
+    "created_at": "2024-01-01T00:00:00Z"
+}
+
+# Создание сессии
+POST /sessions
+Request: {
+    "level_name": "level1",
+    "player_id": "player1",
+    "settings": {...}
+}
+Response: {
+    "status": "created",
+    "session_id": "session1"
+}
+
+# Список сессий
+GET /sessions
+Response: {
+    "sessions": [
+        {
+            "session_id": "session1",
+            "level_name": "level1",
+            "player_id": "player1",
+            "created_at": "2024-01-01T00:00:00Z"
+        },
+        ...
+    ]
+}
+
+# Данные сессии
+GET /sessions/{session_id}
+Response: {
+    "session_id": "session1",
+    "level_name": "level1",
+    "player_id": "player1",
+    "settings": {...},
+    "events": [...],
+    "created_at": "2024-01-01T00:00:00Z"
+}
+
+# Загрузка аналитики
+POST /analytics
+Request: {
+    "session_id": "session1",
+    "metrics": {...},
+    "events": [...]
+}
+Response: {
+    "status": "ok",
+    "analytics_id": "analytics1"
+}
+```
+
+## Форматы данных
+
+### Уровень
+```python
+{
+    "name": str,
+    "difficulty": str,
+    "grid_size": {
+        "width": int,
+        "height": int
+    },
+    "blocks": [
+        {
+            "type": str,
+            "position": {
+                "x": int,
+                "y": int
+            },
+            "rotation": int
+        }
+    ],
+    "spawn_points": [
+        {
+            "x": int,
+            "y": int
+        }
+    ]
+}
+```
+
+### Сессия
+```python
+{
+    "session_id": str,
+    "level_name": str,
+    "player_id": str,
+    "settings": {
+        "difficulty": str,
+        "speed": float,
+        "gravity": float
+    },
+    "events": [
+        {
+            "type": str,
+            "timestamp": str,
+            "data": dict
+        }
+    ]
+}
+```
+
+### Аналитика
+```python
+{
+    "session_id": str,
+    "metrics": {
+        "score": int,
+        "time": float,
+        "blocks_placed": int,
+        "lines_cleared": int
+    },
+    "events": [
+        {
+            "type": str,
+            "timestamp": str,
+            "data": dict
+        }
+    ]
+}
+```
+
+## Обработка ошибок
+
+### HTTP коды
+- 200 OK
+- 201 Created
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found
+- 500 Internal Server Error
+
+### Формат ошибки
+```python
+{
+    "error": {
+        "code": str,
+        "message": str,
+        "details": dict
+    }
+}
+```
+
+## Логирование
+
+### Уровни
+- DEBUG
+- INFO
+- WARNING
+- ERROR
+- CRITICAL
+
+### Форматы
+- JSON
+- Text
+- Structured
+
+### Направления
+- File
+- Console
+- Network
+- Database

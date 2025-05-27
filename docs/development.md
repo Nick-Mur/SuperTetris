@@ -1,21 +1,19 @@
 # Руководство по разработке
 
-## Требования
-
-### Системные требования
+## Требования к окружению
 
 - Python 3.10+
 - Node.js 18+
-- Go 1.21+
 - C++ 20
 - Docker
 - Docker Compose
+- PostgreSQL 15+
+- Redis 7+
 
-### Зависимости
+## Зависимости
 
 - Python зависимости: `requirements.txt`
 - Node.js зависимости: `package.json`
-- Go зависимости: `go.mod`
 - C++ зависимости: `CMakeLists.txt`
 
 ## Исключенные файлы (.gitignore)
@@ -55,104 +53,165 @@
 
 ## Установка
 
-### Клонирование репозитория
-
-```bash
-git clone https://github.com/your-username/tetris.git
-cd tetris
-```
-
-### Установка зависимостей
-
-```bash
-# Python зависимости
-python -m pip install -r requirements.txt
-
-# Node.js зависимости
-cd src/typescript_client
-npm install
-cd ../..
-
-# Go зависимости
-cd src/go_tools
-go mod download
-cd ../..
-
-# C++ зависимости
-cd src/cpp_physics
-cmake -B build
-cmake --build build
-cd ../..
-```
-
-### Настройка окружения
-
-```bash
-# Копирование конфигурационных файлов
-cp .env.example .env
-cp src/python_server/.env.example src/python_server/.env
-cp src/python_analytics/.env.example src/python_analytics/.env
-cp src/python_ai/.env.example src/python_ai/.env
-cp src/typescript_client/.env.example src/typescript_client/.env
-```
+1. Клонировать репозиторий
+2. Установить зависимости:
+   ```bash
+   # Python
+   pip install -r requirements.txt
+   
+   # Node.js
+   cd src/typescript_client
+   npm install
+   
+   # C++
+   cd src/cpp_physics
+   cmake .
+   make
+   ```
 
 ## Разработка
 
-### Запуск в режиме разработки
-
-```bash
-# Запуск всех компонентов
-./start.sh
-
-# Или запуск отдельных компонентов
-cd src/python_server && python -m uvicorn main:app --reload
-cd src/python_analytics && python -m uvicorn main:app --reload
-cd src/python_ai && python -m uvicorn main:app --reload
-cd src/typescript_client && npm run dev
-cd src/cpp_physics && ./build/physics_engine
-cd src/go_tools && go run main.go
-```
-
-### Тестирование
-
-```bash
-# Запуск всех тестов
-./system_test.sh
-
-# Или запуск тестов отдельных компонентов
-cd src/python_server && python -m pytest
-cd src/python_analytics && python -m pytest
-cd src/python_ai && python -m pytest
-cd src/typescript_client && npm test
-cd src/cpp_physics && ctest
-cd src/go_tools && go test ./...
-```
-
-### Линтинг и форматирование
+### Форматирование кода
 
 ```bash
 # Python
 black .
 isort .
-flake8 .
-mypy .
+
+# TypeScript
+cd src/typescript_client
+npm run format
+
+# C++
+cd src/cpp_physics
+clang-format -i *.cpp *.h
+```
+
+### Линтинг
+
+```bash
+# Python
+flake8
+pylint .
 
 # TypeScript
 cd src/typescript_client
 npm run lint
-npm run format
-cd ../..
-
-# Go
-cd src/go_tools
-go fmt ./...
-go vet ./...
-cd ../..
 
 # C++
 cd src/cpp_physics
-clang-format -i src/**/*.{h,cpp}
-cd ../..
+cppcheck .
+```
+
+### Тестирование
+
+```bash
+# Python
+pytest
+
+# TypeScript
+cd src/typescript_client
+npm test
+
+# C++
+cd src/cpp_physics
+ctest
+```
+
+### Мониторинг
+
+```bash
+# Логи
+tail -f logs/python_server.log
+tail -f logs/python_logic.log
+tail -f logs/typescript_client.log
+tail -f logs/python_analytics.log
+tail -f logs/python_ai.log
+tail -f logs/python_tools.log
+
+# Метрики
+http://localhost:9090  # Prometheus
+http://localhost:3000  # Grafana
+```
+
+### Отладка
+
+```bash
+# Python
+python -m pdb main.py
+
+# TypeScript
+node --inspect main.js
+
+# C++
+gdb ./main
+```
+
+### Безопасность
+
+```bash
+# Сканирование уязвимостей
+safety check
+npm audit
+cppcheck .
+
+# Сканирование кода
+bandit -r .
+pylint .
+npm run security
+cppcheck .
+```
+
+### Профилирование
+
+```bash
+# Python
+python -m cProfile main.py
+
+# TypeScript
+node --prof main.js
+
+# C++
+gprof ./main
+```
+
+### Бенчмарки
+
+```bash
+# Python
+pytest --benchmark-only
+
+# TypeScript
+npm run benchmark
+
+# C++
+./benchmark
+```
+
+### Документация
+
+```bash
+# Python
+pydoc -p 8080
+
+# TypeScript
+npm run docs
+
+# C++
+doxygen Doxyfile
+```
+
+### Просмотр документации
+
+```bash
+# Python
+open http://localhost:8080
+
+# TypeScript
+npm run docs:serve
+
+# C++
+open docs/html/index.html
 ```
 
 ## Структура проекта
@@ -160,12 +219,13 @@ cd ../..
 ```
 tetris/
 ├── src/
-│   ├── python_server/      # Python Game Server
-│   ├── python_analytics/   # Python Analytics
-│   ├── python_ai/         # Python AI
-│   ├── typescript_client/ # TypeScript Client
-│   ├── cpp_physics/      # C++ Physics Engine
-│   └── go_tools/         # Go Development Tools
+│   ├── python_tools/        # Инструменты разработки на Python
+│   ├── python_logic/        # Игровая логика на Python
+│   ├── python_analytics/    # Аналитика на Python
+│   ├── python_ai/          # ИИ на Python
+│   ├── typescript_client/   # Клиент на TypeScript
+│   ├── cpp_physics/        # Физический движок на C++
+│   └── common_utils/       # Общие утилиты
 ├── tests/                # Тесты
 ├── docs/                # Документация
 ├── scripts/             # Скрипты

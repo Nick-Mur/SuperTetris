@@ -138,19 +138,19 @@ def test_python_typescript_integration():
         print(f"Error during test: {e}")
         return False
 
-# Функция для проверки интеграции между Go и Python
-def test_go_python_integration():
-    print("Testing Go Tools and Python Game Logic integration...")
+# Функция для проверки интеграции между Python Tools и Python Game Logic
+def test_python_tools_integration():
+    print("Testing Python Tools and Python Game Logic integration...")
     
     try:
-        # Проверка доступности Go сервера
+        # Проверка доступности Python Tools сервера
         try:
             response = requests.get("http://localhost:8080/api/v1/dev/status")
             if response.status_code != 200:
-                print("Error: Go server is not available")
+                print("Error: Python Tools server is not available")
                 return False
         except requests.RequestException:
-            print("Error: Cannot connect to Go server")
+            print("Error: Cannot connect to Python Tools server")
             return False
 
         status = response.json()
@@ -194,7 +194,7 @@ def test_go_python_integration():
                 print("Error: Invalid level data")
                 return False
                 
-            print("Go Tools and Python Game Logic integration test passed.")
+            print("Python Tools and Python Game Logic integration test passed.")
             return True
             
         except requests.RequestException as e:
@@ -234,7 +234,7 @@ def test_full_system():
         services = [
             ("http://localhost:8080/api/v1/status", "Main API"),
             ("http://localhost:9000/physics/status", "Physics Engine"),
-            ("http://localhost:8080/api/v1/dev/status", "Go Tools")
+            ("http://localhost:8080/api/v1/dev/status", "Python Tools")
         ]
         
         for url, name in services:
@@ -366,7 +366,7 @@ def main():
     tests = [
         test_cpp_python_integration,
         test_python_typescript_integration,
-        test_go_python_integration,
+        test_python_tools_integration,
         test_full_system
     ]
     
