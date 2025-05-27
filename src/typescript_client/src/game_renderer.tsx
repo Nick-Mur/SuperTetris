@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
-import { Application, Container, Graphics, Sprite, Text } from 'pixi.js';
-import { TetrominoType, Direction, RotationDirection, SpellType, GameMode } from './types';
+import { Application, Container, Graphics, Sprite, Text, AnimatedSprite } from 'pixi.js';
+import { TetrominoType, Direction, RotationDirection, SpellType, GameMode } from './types/game';
 
 /**
  * GameRenderer - Клиентская часть для игры Tetris с элементами Tricky Towers
@@ -143,26 +143,23 @@ export class GameRenderer {
   private loadTextures(): void {
     // Загрузка текстур для блоков
     Object.values(TetrominoType).forEach((type) => {
-      this.textures[`block_${type}`] = PIXI.Texture.from(`assets/blocks/${type.toLowerCase()}.png`);
+      this.textures[`block_${type}`] = PIXI.Texture.from(`assets/blocks/${(type as string).toLowerCase()}.png`);
     });
 
     // Загрузка текстур для заклинаний
     Object.values(SpellType).forEach((type) => {
-      this.textures[`spell_${type}`] = PIXI.Texture.from(`assets/spells/${type.toLowerCase()}.png`);
+      this.textures[`spell_${type}`] = PIXI.Texture.from(`assets/spells/${(type as string).toLowerCase()}.png`);
     });
 
     // Загрузка текстур для анимаций заклинаний
     Object.values(SpellType).forEach((type) => {
       const frames = [];
       for (let i = 0; i < 5; i++) {
-        frames.push(PIXI.Texture.from(`assets/spell_animations/${type.toLowerCase()}_${i}.png`));
+        frames.push(PIXI.Texture.from(`assets/spell_animations/${(type as string).toLowerCase()}_${i}.png`));
       }
-      const animation = new PIXI.AnimatedSprite(frames);
-      animation.animationSpeed = 0.1;
-      animation.loop = false;
-      animation.visible = false;
-      this.spellAnimations.set(type, animation);
-      this.gameContainer.addChild(animation);
+      // Создаем анимированный спрайт из текстур
+      this.spellAnimations.set(type, PIXI.AnimatedSprite.fromFrames(frames));
+      this.gameContainer.addChild(this.spellAnimations.get(type)!);
     });
   }
 
@@ -351,7 +348,7 @@ export class GameRenderer {
     if (!container) return;
 
     // Удаление старого тетромино
-    container.children.forEach(child => {
+    container.children.forEach((child: PIXI.DisplayObject) => {
       if (child.name === 'current_tetromino') {
         container.removeChild(child);
       }

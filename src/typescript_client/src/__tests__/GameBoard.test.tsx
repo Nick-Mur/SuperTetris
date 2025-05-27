@@ -147,10 +147,8 @@ describe('GameBoard Component', () => {
     );
 
     // TODO: Добавить более специфичные селекторы для кнопок заклинаний
-    const spellButtons = screen.getAllByRole('button');
+    // const spellButtons = screen.getAllByRole('button'); // Удаляем неиспользуемую переменную
     // Кнопки заклинаний могут быть не первыми в списке всех кнопок, нужно уточнить селектор
-    // fireEvent.click(spellButtons[0]);
-    // expect(mockOnSpellCast).toHaveBeenCalledWith(SpellType.CLEAR_LINE);
   });
 
   it('shows game over state', () => {

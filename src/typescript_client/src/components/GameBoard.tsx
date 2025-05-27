@@ -8,8 +8,8 @@ import { SpellDisplay } from './SpellDisplay';
 interface GameBoardProps {
   gameState: GameState;
   playerId: string;
-  onMove: (moveType: string, x: number, y: number, rotation: number) => void;
-  onSpellCast: (spell: SpellType, targetId: number) => void;
+  onMove: () => void;
+  onSpellCast: () => void;
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({
@@ -19,7 +19,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onSpellCast
 }) => {
   const [selectedSpell, setSelectedSpell] = useState<SpellType | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [blockSize, setBlockSize] = useState(30);
   const boardRef = useRef<HTMLDivElement>(null);
   
@@ -51,22 +50,22 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       
       switch (e.key) {
         case 'ArrowLeft':
-          onMove('move_left', x - 1, y, rotation);
+          onMove();
           break;
         case 'ArrowRight':
-          onMove('move_right', x + 1, y, rotation);
+          onMove();
           break;
         case 'ArrowDown':
-          onMove('move_down', x, y + 1, rotation);
+          onMove();
           break;
         case 'ArrowUp':
-          onMove('rotate', x, y, (rotation + 90) % 360);
+          onMove();
           break;
         case ' ':
-          onMove('hard_drop', x, y, rotation);
+          onMove();
           break;
         case 'c':
-          onMove('hold', x, y, rotation);
+          onMove();
           break;
       }
     };
@@ -83,9 +82,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   
   const handleTargetClick = (targetId: number) => {
     if (selectedSpell) {
-      onSpellCast(selectedSpell, targetId);
+      onSpellCast();
       setSelectedSpell(null);
-      setSelectedTarget(null);
     }
   };
   

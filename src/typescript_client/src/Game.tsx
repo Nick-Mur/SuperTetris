@@ -72,16 +72,16 @@ const Game: React.FC = () => {
     setIsSettingsOpen(false);
     setIsGameOver(false);
   }, []);
-
-  const handleMove = useCallback((direction: string) => {
+  
+  const handleMove = useCallback((/* direction: string */) => {
     // TODO: Обработка движения игрока
-    console.log('Move:', direction);
-  }, []); // Добавляем direction в зависимости, если он используется
+    // console.log('Move:', direction);
+  }, []); // Зависимости могут быть пустыми, если direction не используется
 
-  const handleSpellCast = useCallback((spellType: string) => {
+  const handleSpellCast = useCallback((/* spellType: string */) => {
     // TODO: Обработка заклинаний
-    console.log('Spell Cast:', spellType);
-  }, []); // Добавляем spellType в зависимости, если он используется
+    // console.log('Spell Cast:', spellType);
+  }, []); // Зависимости могут быть пустыми, если spellType не используется
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -112,49 +112,49 @@ const Game: React.FC = () => {
 
   // Рендеринг игры в зависимости от состояния
   if (!gameMode) {
-    return (
-      <div className="game-container">
+  return (
+    <div className="game-container">
         <GameMenu onStartGame={handleStartGame} onSettings={handleSettings} />
         {isSettingsOpen && (
           <GameSettings onSave={handleSettingsSave} onCancel={handleSettingsCancel} />
         )}
-      </div>
-    );
+    </div>
+  );
   }
 
   if (isGameOver) {
-    return (
+  return (
       <div className="game-container">
         <GameOver score={gameState?.score || 0} gameMode={gameMode} onRestart={() => handleStartGame(gameMode)} onMainMenu={() => setGameMode(null)} />
-      </div>
-    );
+    </div>
+  );
   }
 
   if (isPaused) {
-    return (
+  return (
       <div className="game-container">
         <GamePause onResume={handleResume} onSettings={handleSettings} onMainMenu={() => setGameMode(null)} />
         {isSettingsOpen && (
           <GameSettings onSave={handleSettingsSave} onCancel={handleSettingsCancel} />
         )}
-      </div>
-    );
+    </div>
+  );
   }
 
-  if (gameState) {
+    if (gameState) {
     // TODO: Передать правильный playerId и реализовать логику onMove/onSpellCast
-    return (
+        return (
       <div className="game-container">
         {/* Передача правильных пропсов в GameBoard */}
-        <GameBoard
-          gameState={gameState}
+            <GameBoard
+              gameState={gameState}
           playerId="player-1" // Замените на реальный playerId
           onMove={(/* moveType, x, y, rotation */) => { /* TODO: Обработка движения */ }}
           onSpellCast={(/* spell, targetId */) => { /* TODO: Обработка заклинания */ }}
         />
         {/* TODO: Отображение другой информации: счет, уровень, заклинания и т.д. */}
-      </div>
-    );
+    </div>
+  );
   }
 
   return <div>Загрузка игры...</div>; // Или другой индикатор загрузки
