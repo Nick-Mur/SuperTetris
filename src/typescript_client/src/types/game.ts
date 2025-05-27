@@ -8,6 +8,18 @@ export enum TetrominoType {
   Z = 'Z'
 }
 
+export enum Direction {
+  UP = 'UP',
+  DOWN = 'DOWN',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+}
+
+export enum RotationDirection {
+  CLOCKWISE = 'CLOCKWISE',
+  COUNTER_CLOCKWISE = 'COUNTER_CLOCKWISE',
+}
+
 export enum SpellType {
   CLEAR_LINE = 'CLEAR_LINE',
   SWAP_PIECES = 'SWAP_PIECES',

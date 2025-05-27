@@ -158,7 +158,7 @@ export class GameRenderer {
         frames.push(PIXI.Texture.from(`assets/spell_animations/${(type as string).toLowerCase()}_${i}.png`));
       }
       // Создаем анимированный спрайт из текстур
-      this.spellAnimations.set(type, PIXI.AnimatedSprite.fromFrames(frames));
+      this.spellAnimations.set(type, PIXI.AnimatedSprite.fromFrames(frames as PIXI.Texture[]));
       this.gameContainer.addChild(this.spellAnimations.get(type)!);
     });
   }
@@ -348,7 +348,7 @@ export class GameRenderer {
     if (!container) return;
 
     // Удаление старого тетромино
-    container.children.forEach((child: PIXI.DisplayObject) => {
+    container.children.forEach((child: PIXI.Container) => {
       if (child.name === 'current_tetromino') {
         container.removeChild(child);
       }
