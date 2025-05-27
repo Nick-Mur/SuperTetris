@@ -68,8 +68,8 @@ services:
   # Python Game Logic
   python-logic:
     build:
-      context: ./src/python_logic
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/python_logic/Dockerfile
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data
@@ -80,10 +80,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - cpp-physics
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     networks:
       - tetris_network
 
@@ -132,8 +130,8 @@ services:
   # Python AI
   python-ai:
     build:
-      context: ./src/python_ai
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/python_ai/Dockerfile
     ports:
       - "8002:8002"
     volumes:

@@ -22,7 +22,7 @@
    - Расчет физики блоков
    - Оптимизация производительности
 
-4. **Python (Development Tools)**
+4. **Go (Development Tools)**
    - Инструменты разработки
    - Утилиты для тестирования
    - Системы мониторинга
@@ -61,7 +61,7 @@
         ^                        ^                        ^
         |                        |                        |
         v                        v                        v
-[Python Tools] <------------> [Python Analytics] <----> [FFI Bindings]
+[Go Tools] <----------------> [Python Analytics] <----> [FFI Bindings]
 ```
 
 ### Пути к коду
@@ -69,12 +69,13 @@
 - Python API endpoints: `/src/python_logic/api/endpoints.py`
 - TypeScript API client: `/src/typescript_client/api/client.ts`
 - Python bindings to C++: `/src/python_logic/physics/bindings.py`
-- Python Tools API: `/src/python_tools/api/server.py`
+- Go API server: `/src/go_tools/api/server.go`
 
 ## Требования к окружению
 
 - Python 3.10+
 - Node.js 18+
+- Go 1.21+
 - C++ 20
 - Docker
 - Docker Compose
@@ -89,6 +90,9 @@
    
    # TypeScript
    npm install
+   
+   # Go
+   go mod download
    
    # C++
    cmake .
@@ -110,6 +114,9 @@ pytest
 # TypeScript
 npm test
 
+# Go
+go test ./...
+
 # C++
 ctest
 ```
@@ -124,6 +131,7 @@ ctest
 ./run_integration_tests.sh --component python
 ./run_integration_tests.sh --component typescript
 ./run_integration_tests.sh --component cpp
+./run_integration_tests.sh --component go
 ```
 
 ## Мониторинг

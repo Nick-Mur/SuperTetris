@@ -9,7 +9,7 @@ export default [
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './src/typescript_client/tsconfig.json',
         sourceType: 'module',
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },

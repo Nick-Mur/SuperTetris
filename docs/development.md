@@ -55,19 +55,19 @@
 
 1. Клонировать репозиторий
 2. Установить зависимости:
-   ```bash
+```bash
    # Python
-   pip install -r requirements.txt
-   
+pip install -r requirements.txt
+
    # Node.js
-   cd src/typescript_client
-   npm install
+cd src/typescript_client
+npm install
    
    # C++
    cd src/cpp_physics
    cmake .
    make
-   ```
+```
 
 ## Разработка
 
