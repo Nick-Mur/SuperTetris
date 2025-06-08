@@ -12,9 +12,9 @@ RUN npm install -g webpack-cli webpack-dev-server
 
 COPY . .
 
-RUN npm run build
-
 RUN mkdir -p public && mv index.html public/
+
+RUN npm run build
 
 # Production stage
 FROM node:18-slim
