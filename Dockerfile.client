@@ -1,0 +1,19 @@
+# Stage 1: сборка
+FROM node:18 AS builder
+WORKDIR /app
+# Скопировать package-файлы клиента
+COPY package.json package-lock.json ./
+# Установить зависимости ровно по lock-файлу
+RUN npm install --package-lock-only \
+ && npm ci
+# Установить сборочные утилиты
+RUN npm install -g webpack-cli webpack-dev-server
+# Скопировать статику и исходники
+COPY public ./public
+COPY src ./src
+# Собрать финальный бандл
+RUN npm run build
+
+# Stage 2: минимальный nginx-образ
+FROM nginx:stable-alpine
+COPY --from=builder /app/dist /usr/share/nginx/html 

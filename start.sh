@@ -16,9 +16,69 @@ NC='\033[0m' # No Color
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIST_DIR="${PROJECT_ROOT}/dist"
 LOG_DIR="${PROJECT_ROOT}/logs"
+DATA_DIR="${PROJECT_ROOT}/data"
+MODELS_DIR="${PROJECT_ROOT}/models"
 
 # Создание необходимых директорий
 mkdir -p "${LOG_DIR}"
+mkdir -p "${DATA_DIR}"
+mkdir -p "${MODELS_DIR}"
+mkdir -p "${DIST_DIR}"
+
+# Установка правильных прав доступа
+chmod -R 755 "${LOG_DIR}"
+chmod -R 755 "${DATA_DIR}"
+chmod -R 755 "${MODELS_DIR}"
+chmod -R 755 "${DIST_DIR}"
+
+# Проверка зависимостей
+check_dependencies() {
+    echo -e "${BLUE}Checking dependencies...${NC}"
+    
+    # Проверка Python
+    if ! command -v python &> /dev/null; then
+        echo -e "${RED}Python not found. Please install Python 3.8 or higher.${NC}"
+        exit 1
+    fi
+    
+    # Проверка Node.js
+    if ! command -v node &> /dev/null; then
+        echo -e "${RED}Node.js not found. Please install Node.js 18 or higher.${NC}"
+        exit 1
+    fi
+    
+    # Проверка npm
+    if ! command -v npm &> /dev/null; then
+        echo -e "${RED}npm not found. Please install npm.${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}All dependencies are installed.${NC}"
+}
+
+# Функция ожидания готовности сервиса
+wait_for_service() {
+    local service_name=$1
+    local port=$2
+    local max_attempts=30
+    local attempt=1
+    
+    echo -e "${BLUE}Waiting for ${service_name} to be ready...${NC}"
+    
+    while ! nc -z localhost $port && [ $attempt -le $max_attempts ]; do
+        echo -e "${YELLOW}Attempt $attempt/$max_attempts: ${service_name} is not ready yet...${NC}"
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+    
+    if [ $attempt -gt $max_attempts ]; then
+        echo -e "${RED}${service_name} failed to start after $max_attempts attempts.${NC}"
+        cleanup
+        exit 1
+    fi
+    
+    echo -e "${GREEN}${service_name} is ready!${NC}"
+}
 
 # Определение платформы
 detect_platform() {
@@ -40,6 +100,17 @@ start_python_server() {
     
     cd "${PROJECT_ROOT}/src/python_server"
     python src/main.py > "${LOG_DIR}/python_server.log" 2>&1 &
+    local PID=$!
+    
+    # Проверка успешности запуска
+    sleep 2
+    if ! ps -p $PID > /dev/null; then
+        echo -e "${RED}Failed to start Python Game Server. Check logs for details.${NC}"
+        exit 1
+    fi
+    
+    # Ожидание готовности сервера
+    wait_for_service "Python Game Server" 8000
     
     echo -e "${GREEN}Python Game Server started.${NC}"
 }
@@ -117,19 +188,36 @@ trap cleanup SIGINT SIGTERM
 main() {
     echo -e "${BLUE}Starting Tetris with Tricky Towers elements...${NC}"
     
+    # Проверка зависимостей
+    check_dependencies
+    
     # Определение платформы
     detect_platform
     
-    # Запуск компонентов
-    start_python_server
-    start_python_analytics
-    start_python_ai
-    start_typescript_client
+    # Запуск компонентов в правильном порядке
     start_cpp_physics
+    wait_for_service "C++ Physics Engine" 9000
+    
+    start_python_server
+    wait_for_service "Python Game Server" 8000
+    
+    start_python_analytics
+    wait_for_service "Python Analytics" 8001
+    
+    start_python_ai
+    wait_for_service "Python AI" 8002
+    
+    start_typescript_client
+    wait_for_service "TypeScript Client" 3000
+    
     start_python_tools
+    wait_for_service "Python Development Tools" 8080
     
     echo -e "${GREEN}All components started successfully!${NC}"
     echo -e "Open http://localhost:3000 in your browser to play the game."
+    
+    # Ожидание сигнала завершения
+    wait
 }
 
 # Запуск основной функции

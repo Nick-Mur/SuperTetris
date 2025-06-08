@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useWebSocket } from '../hooks/useWebSocket';
 
 // Определяем интерфейс для мокированного экземпляра WebSocket

@@ -1,0 +1,8 @@
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/physics_engine.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/physics_engine_test.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/edit_cache.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/rebuild_cache.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/list_install_components.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/install.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/install/local.dir
+/home/ubuntu/tetris_project/src/cpp_physics/build/CMakeFiles/install/strip.dir

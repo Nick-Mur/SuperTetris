@@ -8,9 +8,7 @@ import { GameMode, GameState, GameSettings as GameSettingsType } from './types/g
 import { DEFAULT_GAME_SETTINGS } from './constants/game';
 import './styles/index.css';
 import './styles/components.css';
-
-// Стили
-import './GameUI.css';
+import './styles/GameUI.css';
 
 // Основной компонент игры
 const Game: React.FC = () => {
