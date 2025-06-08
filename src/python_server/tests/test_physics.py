@@ -1,7 +1,7 @@
 import pytest
 import uuid
 import asyncio
-from ..physics.manager import PhysicsManager
+from ..src.physics.manager import PhysicsManager
 
 @pytest.fixture
 def physics_manager():
@@ -74,6 +74,7 @@ async def test_physics_update_loop(physics_manager):
     await physics_manager.add_block(block_id, position, rotation)
     await physics_manager.start()
     await asyncio.sleep(0.1)
+    # Позиция должна измениться из-за гравитации
+    assert physics_manager.blocks[block_id]["position"] != position
     await physics_manager.stop()
     assert not physics_manager.running
-    assert physics_manager.blocks[block_id]["position"] != position  # Позиция должна измениться из-за гравитации 

@@ -2,5 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 COPY . .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential libsnappy-dev \
+    && pip install --no-cache-dir --default-timeout=100 -r requirements.txt \
+    && apt-get purge -y --auto-remove build-essential libsnappy-dev \
+    && rm -rf /var/lib/apt/lists/*
 CMD ["python", "-m", "python_analytics.main"] # Assuming main.py or similar entry point 

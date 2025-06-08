@@ -1,8 +1,8 @@
 import pytest
 import uuid
-from ..game.manager import GameManager, Game
-from ..game.types import GameType, DifficultyLevel, GameSettings
-from ..exceptions import GameNotFoundError, GameAlreadyExistsError
+from ..src.game.manager import GameManager, Game
+from ..src.game.types import GameType, DifficultyLevel, GameSettings
+from ..src.exceptions import GameNotFoundError, GameAlreadyExistsError
 
 @pytest.fixture
 def game_manager():
@@ -56,12 +56,15 @@ async def test_add_player_to_game(game_manager, game_settings):
 @pytest.mark.asyncio
 async def test_remove_player_from_game(game_manager, game_settings):
     game_id = await game_manager.create_game()
-    player_id = uuid.uuid4()
-    await game_manager.add_player_to_game(player_id, game_id)
-    await game_manager.remove_player_from_game(player_id, game_id)
+    player1 = uuid.uuid4()
+    player2 = uuid.uuid4()
+    await game_manager.add_player_to_game(player1, game_id)
+    await game_manager.add_player_to_game(player2, game_id)
+    await game_manager.remove_player_from_game(player1, game_id)
     game = await game_manager.get_game(game_id)
     assert game is not None
-    assert player_id not in game.players
+    assert player1 not in game.players
+    assert player2 in game.players
 
 @pytest.mark.asyncio
 async def test_game_is_empty_after_removing_last_player(game_manager, game_settings):

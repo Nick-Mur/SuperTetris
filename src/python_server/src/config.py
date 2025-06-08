@@ -1,29 +1,36 @@
-from pydantic import BaseSettings
+"""Server configuration using `pydantic_settings`."""
+
 from typing import Optional
-import os
+
 from dotenv import load_dotenv
+from pydantic import ConfigDict
+from pydantic_settings import BaseSettings
+
 
 load_dotenv()
 
+
 class Settings(BaseSettings):
+    """Configuration for the game server."""
+
     # Основные настройки сервера
-    server_host: str = os.getenv("SERVER_HOST", "0.0.0.0")
-    server_port: int = int(os.getenv("SERVER_PORT", "8080"))
-    
+    server_host: str = "0.0.0.0"
+    server_port: int = 8080
+
     # Настройки игры
-    game_update_interval: float = float(os.getenv("GAME_UPDATE_INTERVAL", "0.016"))  # ~60 FPS
-    
+    game_update_interval: float = 0.016
+
     # Настройки сессии
-    session_cleanup_interval: int = int(os.getenv("SESSION_CLEANUP_INTERVAL", "300"))  # 5 минут
-    session_heartbeat_interval: int = int(os.getenv("SESSION_HEARTBEAT_INTERVAL", "30"))  # 30 секунд
-    
+    session_cleanup_interval: int = 300
+    session_heartbeat_interval: int = 30
+
     # Настройки физики
-    physics_gravity: float = float(os.getenv("PHYSICS_GRAVITY", "9.8"))
-    physics_friction: float = float(os.getenv("PHYSICS_FRICTION", "0.1"))
-    
+    physics_gravity: float = 9.8
+    physics_friction: float = 0.1
+
     # Настройки логирования
-    log_level: str = os.getenv("LOG_LEVEL", "INFO")
-    log_file: Optional[str] = os.getenv("LOG_FILE", "logs/server.log")
-    
-    class Config:
-        env_file = ".env" 
+    log_level: str = "INFO"
+    log_file: Optional[str] = "logs/server.log"
+
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+
