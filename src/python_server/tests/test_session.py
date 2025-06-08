@@ -1,9 +1,9 @@
 import pytest
 import uuid
 import asyncio
-from ..session.manager import SessionManager, Session
-from ..game.manager import GameManager
-from ..exceptions import SessionNotFoundError
+from ..src.session.manager import SessionManager, Session
+from ..src.game.manager import GameManager
+from ..src.exceptions import SessionNotFoundError
 
 @pytest.fixture
 def game_manager():

@@ -1,7 +1,7 @@
 import json
 import uuid
 from typing import Any, Dict, Optional
-from loguru import logger
+from .logger import logger
 from .exceptions import GameError
 
 def validate_game_settings(settings: Dict[str, Any]) -> None:

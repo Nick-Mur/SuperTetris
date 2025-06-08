@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from typing import Dict, Optional
-from loguru import logger
+from ..logger import logger
 from ..config import Settings
 
 class Game:
