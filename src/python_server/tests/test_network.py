@@ -1,10 +1,10 @@
 import pytest
 import uuid
 import json
-from ..network.manager import NetworkManager
-from ..game.manager import GameManager
-from ..session.manager import SessionManager
-from ..config import Settings
+from ..src.network.manager import NetworkManager
+from ..src.game.manager import GameManager
+from ..src.session.manager import SessionManager
+from ..src.config import Settings
 
 @pytest.fixture
 def settings():
