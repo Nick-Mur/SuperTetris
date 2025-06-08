@@ -1,7 +1,7 @@
 import asyncio
 import uvicorn
 from fastapi import FastAPI, WebSocket
-from loguru import logger
+from .logger import logger
 import uuid
 from typing import Dict, Set
 import uvicorn.logging

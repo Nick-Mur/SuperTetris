@@ -10,9 +10,10 @@ RUN npm install --package-lock-only \
 RUN npm install -g webpack-cli webpack-dev-server
 # Скопировать статику и исходники
 COPY . .
+# Переместить HTML-файл в каталог public до сборки
+RUN mkdir -p public && mv index.html public/
 # Собрать финальный бандл
 RUN npm run build
-RUN mkdir -p public && mv index.html public/
 
 # Stage 2: минимальный nginx-образ
 FROM nginx:stable-alpine

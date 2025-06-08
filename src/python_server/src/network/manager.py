@@ -1,7 +1,7 @@
 import json
 import uuid
 from typing import Dict, Any, Optional
-from loguru import logger
+from ..logger import logger
 from ..config import Settings
 from ..game.manager import GameManager
 from ..session.manager import SessionManager

@@ -1,6 +1,6 @@
 import pytest
 import uuid
-from ..utils import (
+from ..src.utils import (
     validate_game_settings,
     parse_uuid,
     format_error,
@@ -8,7 +8,7 @@ from ..utils import (
     safe_json_loads,
     safe_json_dumps
 )
-from ..exceptions import GameError
+from ..src.exceptions import GameError
 
 def test_validate_game_settings_valid():
     settings = {
