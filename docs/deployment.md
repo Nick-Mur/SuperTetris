@@ -120,6 +120,27 @@ docker-compose up -d
 docker-compose down
 ```
 
+### Запуск без привилегий (Rootless Docker)
+
+Если при запуске `docker-compose` возникают ошибки вида `operation not permitted`
+или проблемы с iptables, можно воспользоваться режимом rootless Docker.
+
+```bash
+# Установка пакета rootless Docker (для Ubuntu/Debian)
+sudo apt-get install docker-ce-rootless-extras
+dockerd-rootless-setuptool.sh install
+
+# Экспорт переменных окружения для текущей сессии
+export PATH="$HOME/bin:$PATH"
+export DOCKER_HOST="unix:///run/user/$(id -u)/docker.sock"
+
+# Запуск контейнеров
+docker compose up --build
+```
+
+Подробнее о настройке rootless Docker смотрите в [официальной
+документации](https://docs.docker.com/engine/security/rootless/).
+
 ### Развертывание вручную
 
 ```bash
