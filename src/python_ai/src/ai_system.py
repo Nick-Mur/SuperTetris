@@ -279,4 +279,7 @@ class AISystem:
             return avg_reward
         except Exception as e:
             logger.error(f"Evaluation failed: {e}")
-            raise 
+            raise
+
+def main():
+    print("ai_system main entry. Add your AI logic here.") 

@@ -78,4 +78,6 @@ def start_server():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
+    print("python_tools main entry. Add your tool logic here.")
+
     cli() 
