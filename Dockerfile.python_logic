@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Копируем только requirements.txt и устанавливаем зависимости
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+
+# Копируем исходники python_logic
+COPY src/python_logic ./python_logic
+
+# Копируем собранную библиотеку физики
+COPY build/libphysics.so ./python_logic/build/libphysics.so
+
+# Если нужны другие ресурсы — копируй их явно
+
+CMD ["python", "-m", "python_logic.game_logic"] 
